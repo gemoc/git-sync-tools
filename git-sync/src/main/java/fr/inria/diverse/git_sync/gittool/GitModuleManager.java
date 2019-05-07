@@ -12,6 +12,7 @@ import java.util.Set;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
+import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
@@ -19,8 +20,10 @@ import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.IndexDiff;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileBasedConfig;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.submodule.SubmoduleStatus;
@@ -302,14 +305,49 @@ public class GitModuleManager {
 					}
 					System.out.println("\tneed to track module " + walk.getModuleName() + " on branch " + trackedBranch);
 						
-					
+					// Make sure the parent repo knows that its submodule now tracks a branch:
 					FileBasedConfig modulesConfig = new FileBasedConfig(new File(
 							parentgit.getRepository().getWorkTree(), Constants.DOT_GIT_MODULES), parentgit.getRepository().getFS());
 					modulesConfig.load();
 					modulesConfig.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, walk.getModulesPath(),
 							ConfigConstants.CONFIG_BRANCH_SECTION, trackedBranch);
 					modulesConfig.save();
+					// Make sure your submodule is actually at the latest of that branch:
+					checkoutBranch(submodulegit, trackedBranch);
+					// record the new state of your submodule in your parent repo:
+					parentgit.add()
+						.addFilepattern(walk.getModulesPath())
+						.call();
+					parentgit.add()
+						.addFilepattern(Constants.DOT_GIT_MODULES)
+						.call();
+					
+					Status status = parentgit.status().call();
+					if(!status.isClean()) {
+						System.out.println("Added: " + status.getAdded());
+		                System.out.println("Changed: " + status.getChanged());
+		                System.out.println("Conflicting: " + status.getConflicting());
+		                System.out.println("ConflictingStageState: " + status.getConflictingStageState());
+		                System.out.println("IgnoredNotInIndex: " + status.getIgnoredNotInIndex());
+		                System.out.println("Missing: " + status.getMissing());
+		                System.out.println("Modified: " + status.getModified());
+		                System.out.println("Removed: " + status.getRemoved());
+		                System.out.println("Untracked: " + status.getUntracked());
+		                System.out.println("UntrackedFolders: " + status.getUntrackedFolders());
+						parentgit.commit()
+							.setMessage("Make submodule "+walk.getModuleName()+" tracking branch "+trackedBranch)
+							.setAllowEmpty(false)
+							.call();
+					}
 				}
+			}
+			Iterable<PushResult> pushResps = parentgit.push()
+				.setCredentialsProvider(credentialProvider)
+				.call();
+			for (PushResult pushRes : pushResps) {
+				System.out.println(
+						pushRes + " ; " + pushRes.getMessages() + " ; " + pushRes.getRemoteUpdates());
+				validateRemoteRefUpdates("push submodule tracking branch", pushRes.getRemoteUpdates());
 			}
 		}
 	}
@@ -348,7 +386,7 @@ public class GitModuleManager {
 				}
 			}
 		}
-		throw new GitSyncError("Checout failed, No branch local or remote branch named "+branchName+" found");
+		throw new GitSyncError("Checkout failed, No branch local or remote branch named "+branchName+" found in "+git.getRepository().getWorkTree());
 	}
 
 	/**
