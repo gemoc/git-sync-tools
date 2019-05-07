@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,13 +16,10 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
-import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.IndexDiff;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileBasedConfig;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.submodule.SubmoduleStatus;
@@ -290,14 +286,12 @@ public class GitModuleManager {
 				Repository submoduleRepository = walk.getRepository();
 				try (Git submodulegit = Git.wrap(submoduleRepository)) {
 					// System.out.println("remote branches in submodule "+walk.getModuleName()+":");
-					boolean needToTrackConsideredBranch = false;
 					String trackedBranch = "master";
 					List<Ref> call = submodulegit.branchList().setListMode(ListMode.REMOTE).call();
 					for (Ref ref : call) {
 						if (ref.getName().startsWith("refs/remotes")) {
 							String branchName = ref.getName().substring(ref.getName().lastIndexOf("/") + 1);
 							if (branchName.equals(consideredBranch)) {
-								needToTrackConsideredBranch = true;
 								trackedBranch = consideredBranch;
 								break;
 							}
