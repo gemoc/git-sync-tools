@@ -23,6 +23,9 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.eclipse.jgit.api.errors.GitAPIException;
+
+import fr.inria.diverse.git_sync.gittool.GitModuleManager;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -52,6 +55,16 @@ public class SyncGitSubmodulesBranchesMojo
     {
     	getLog().debug( "###############################################");
     	getLog().info( "rootGitURL="+rootGitURL);
+    	
+    	GitModuleManager gitManager = new GitModuleManager(rootGitURL, outputDirectory.getAbsolutePath());
+    	try {
+			gitManager.gitClone();
+		} catch (GitAPIException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			getLog().error(e1);
+		}
+    	
         File f = outputDirectory;
 
         if ( !f.exists() )
