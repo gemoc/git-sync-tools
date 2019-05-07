@@ -24,6 +24,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import fr.inria.diverse.git_sync.gittool.GitModuleManager;
 
@@ -56,7 +57,9 @@ public class SyncGitSubmodulesBranchesMojo
     	getLog().debug( "###############################################");
     	getLog().info( "rootGitURL="+rootGitURL);
     	
-    	GitModuleManager gitManager = new GitModuleManager(rootGitURL, outputDirectory.getAbsolutePath());
+    	GitModuleManager gitManager = new GitModuleManager(rootGitURL, 
+    			outputDirectory.getAbsolutePath(),
+    			new UsernamePasswordCredentialsProvider( "user", "pass" ));
     	try {
 			gitManager.gitClone();
 		} catch (GitAPIException e1) {
