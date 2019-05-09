@@ -28,9 +28,14 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GitModuleManager {
 
+	Logger logger = LoggerFactory.getLogger(GitModuleManager.class);
+
+	
 	String gitRemoteURL;
 	String localGitFolder;
 	CredentialsProvider credentialProvider;
@@ -44,12 +49,12 @@ public class GitModuleManager {
 
 	public void gitClone() throws InvalidRemoteException, TransportException, GitAPIException {
 		File localPath = new File(localGitFolder);
-		System.out.println("Cloning from " + gitRemoteURL + " to " + localPath);
+		logger.info("Cloning from " + gitRemoteURL + " to " + localPath);
 		try (Git result = Git.cloneRepository().setURI(gitRemoteURL).setDirectory(localPath).setCloneSubmodules(true)
 				.setCloneAllBranches(true).call()) {
 			// Note: the call() returns an opened repository already which needs to be
 			// closed to avoid file handle leaks!
-			System.out.println("Having repository: " + result.getRepository().getDirectory());
+			logger.info("Having repository: " + result.getRepository().getDirectory());
 		}
 	}
 
@@ -60,24 +65,24 @@ public class GitModuleManager {
 				.findGitDir() // scan up the file system tree
 				.build()) {
 
-			System.out.println("Current parent branches");
+			logger.debug("Current parent branches");
 			// the Ref holds an ObjectId for any type of object (tree, commit, blob, tree)
 			Ref head = repository.exactRef("refs/heads/master");
-			System.out.println("\tRef of refs/heads/master: " + head);
+			logger.debug("\tRef of refs/heads/master: " + head);
 
-			System.out.println("\tcurrent branch: " + repository.getBranch());
+			logger.debug("\tcurrent branch: " + repository.getBranch());
 
 			try (Git git = new Git(repository)) {
 				/*
 				 * List<Ref> call = git.branchList().call(); for (Ref ref : call) {
-				 * System.out.println("\tBranch: " + ref + " " + ref.getName() + " " +
+				 * logger.info("\tBranch: " + ref + " " + ref.getName() + " " +
 				 * ref.getObjectId().getName()); }
 				 * 
-				 * System.out.println("\tNow including remote branches:");
+				 * logger.info("\tNow including remote branches:");
 				 */
 				List<Ref> call = git.branchList().setListMode(ListMode.ALL).call();
 				for (Ref ref : call) {
-					System.out.println("\tBranch: " + ref + " " + ref.getName() + " " + ref.getObjectId().getName());
+					logger.info("\tBranch: " + ref + " " + ref.getName() + " " + ref.getObjectId().getName());
 				}
 			}
 		}
@@ -90,12 +95,12 @@ public class GitModuleManager {
 				.findGitDir() // scan up the file system tree
 				.build()) {
 
-			System.out.println("current branch: " + repository.getBranch());
+			logger.info("submodules on branch " + repository.getBranch()+" :");
 
 			try (Git parentgit = new Git(repository)) {
 				Map<String, SubmoduleStatus> submodules = parentgit.submoduleStatus().call();
 				for (String submoduleName : submodules.keySet()) {
-					System.out.println("\t" + submoduleName);
+					logger.info("\t" + submoduleName);
 				}
 			}
 		}
@@ -113,10 +118,10 @@ public class GitModuleManager {
 				while (walk.next()) {
 					Repository submoduleRepository = walk.getRepository();
 					try (Git submodulegit = Git.wrap(submoduleRepository)) {
-						System.out.println("submodule " + walk.getModuleName());
+						logger.info("submodule " + walk.getModuleName());
 						List<Ref> call = submodulegit.branchList().setListMode(ListMode.REMOTE).call();
 						for (Ref ref : call) {
-							System.out.println("\tBranch: " + ref + " " + ref.getName() + " "
+							logger.info("\tBranch: " + ref + " " + ref.getName() + " "
 									+ ref.getObjectId().getName() + " " + ref.isSymbolic());
 
 						}
@@ -144,12 +149,12 @@ public class GitModuleManager {
 				while (walk.next()) {
 					Repository submoduleRepository = walk.getRepository();
 					try (Git submodulegit = Git.wrap(submoduleRepository)) {
-						System.out.println("remote branches in submodule " + walk.getModuleName() + ":");
+						logger.info("remote branches in submodule " + walk.getModuleName() + ":");
 						List<Ref> call = submodulegit.branchList().setListMode(ListMode.REMOTE).call();
 						for (Ref ref : call) {
 							if (ref.getName().startsWith("refs/remotes")) {
 								String branchName = ref.getName().substring(ref.getName().lastIndexOf("/") + 1);
-								System.out.println("\t" + branchName);
+								logger.info("\t" + branchName);
 								remoteBranchesNames.add(branchName);
 							}
 						}
@@ -179,7 +184,7 @@ public class GitModuleManager {
 					if (ref.getName().startsWith("refs/remotes")) {
 						String branchName = ref.getName().substring(ref.getName().lastIndexOf("/") + 1);
 						if (!relevantBranches.contains(branchName)) {
-							System.out.println("\tdeleting branch " + ref.getName() + "  " + ref);
+							logger.info("\tdeleting branch " + ref.getName() + "  " + ref);
 							// delete locally
 							parentgit.branchDelete().setBranchNames(ref.getName()).setForce(true).call();
 							// delete remotely too
@@ -187,7 +192,7 @@ public class GitModuleManager {
 							Iterable<PushResult> res = parentgit.push().setRefSpecs(refSpec).setRemote("origin")
 									.setCredentialsProvider(credentialProvider).call();
 							for (PushResult pushRes : res) {
-								System.out.println(
+								logger.info(
 										pushRes + " ; " + pushRes.getMessages() + " ; " + pushRes.getRemoteUpdates());
 								validateRemoteRefUpdates("del remote branch", pushRes.getRemoteUpdates());
 							}
@@ -219,7 +224,7 @@ public class GitModuleManager {
 				Set<String> missingParentBranches = new HashSet<String>();
 				missingParentBranches.addAll(relevantBranches);
 				missingParentBranches.removeAll(parentBranches);
-				System.out.println("Missing parent branches :" + missingParentBranches);
+				logger.info("Missing parent branches :" + missingParentBranches);
 				for (String missingParentBranch : missingParentBranches) {
 					createBranchForModules(parentgit, missingParentBranch);
 				}
@@ -233,7 +238,7 @@ public class GitModuleManager {
 		List<Ref> refs = parentgit.branchList().call();
 		for (Ref ref : refs) {
 			if (ref.getName().equals("refs/heads/" + missingParentBranch)) {
-				System.out.println("Removing branch before");
+				logger.info("Removing branch before");
 				parentgit.branchDelete().setBranchNames(missingParentBranch).setForce(true).call();
 				break;
 			}
@@ -248,7 +253,7 @@ public class GitModuleManager {
 				.setCredentialsProvider(credentialProvider).call();
 
 		for (PushResult pushRes : res) {
-			System.out.println(pushRes + " ; " + pushRes.getMessages() + " ; " + pushRes.getRemoteUpdates());
+			logger.info(pushRes + " ; " + pushRes.getMessages() + " ; " + pushRes.getRemoteUpdates());
 			validateRemoteRefUpdates("push new remote branch", pushRes.getRemoteUpdates());
 		}
 	}
@@ -274,7 +279,7 @@ public class GitModuleManager {
 
 	public void updateBranchesForModules(Git parentgit, String consideredBranch)
 			throws GitAPIException, GitSyncError, IOException, ConfigInvalidException {
-		System.out.println("updateBranchesForModules branch=" + consideredBranch);
+		logger.info("updateBranchesForModules branch=" + consideredBranch);
 		// switch parentGit to branch
 		checkoutBranch(parentgit, consideredBranch);
 		
@@ -284,7 +289,7 @@ public class GitModuleManager {
 			while (walk.next()) {
 				Repository submoduleRepository = walk.getRepository();
 				try (Git submodulegit = Git.wrap(submoduleRepository)) {
-					// System.out.println("remote branches in submodule "+walk.getModuleName()+":");
+					// logger.info("remote branches in submodule "+walk.getModuleName()+":");
 					String trackedBranch = "master";
 					List<Ref> call = submodulegit.branchList().setListMode(ListMode.REMOTE).call();
 					for (Ref ref : call) {
@@ -296,7 +301,7 @@ public class GitModuleManager {
 							}
 						}
 					}
-					System.out.println("\tneed to track module " + walk.getModuleName() + " on branch " + trackedBranch);
+					logger.info("\tneed to track module " + walk.getModuleName() + " on branch " + trackedBranch);
 						
 					// Make sure the parent repo knows that its submodule now tracks a branch:
 					FileBasedConfig modulesConfig = new FileBasedConfig(new File(
@@ -308,27 +313,33 @@ public class GitModuleManager {
 					// Make sure your submodule is actually at the latest of that branch:
 					checkoutBranch(submodulegit, trackedBranch);
 					// record the new state of your submodule in your parent repo:
+					logger.debug("\t\tgit add " + walk.getModulesPath());
 					parentgit.add()
 						.addFilepattern(walk.getModulesPath())
 						.call();
+					logger.debug("\t\tgit add " + Constants.DOT_GIT_MODULES);
 					parentgit.add()
 						.addFilepattern(Constants.DOT_GIT_MODULES)
 						.call();
 					
 					Status status = parentgit.status().call();
 					if(!status.isClean()) {
-						System.out.println("\t\tAdded: " + status.getAdded());
-		                System.out.println("\t\tChanged: " + status.getChanged());
-		                System.out.println("\t\tConflicting: " + status.getConflicting());
-		                System.out.println("\t\tConflictingStageState: " + status.getConflictingStageState());
-		                System.out.println("\t\tIgnoredNotInIndex: " + status.getIgnoredNotInIndex());
-		                System.out.println("\t\tMissing: " + status.getMissing());
-		                System.out.println("\t\tModified: " + status.getModified());
-		                System.out.println("\t\tRemoved: " + status.getRemoved());
-		                System.out.println("\t\tUntracked: " + status.getUntracked());
-		                System.out.println("\t\tUntrackedFolders: " + status.getUntrackedFolders());
+						logger.debug("\t\tAdded: " + status.getAdded());
+						logger.debug("\t\tChanged: " + status.getChanged());
+						logger.debug("\t\tConflicting: " + status.getConflicting());
+		                logger.debug("\t\tConflictingStageState: " + status.getConflictingStageState());
+		                logger.debug("\t\tIgnoredNotInIndex: " + status.getIgnoredNotInIndex());
+		                logger.debug("\t\tMissing: " + status.getMissing());
+		                logger.debug("\t\tModified: " + status.getModified());
+		                logger.debug("\t\tRemoved: " + status.getRemoved());
+		                logger.debug("\t\tUntracked: " + status.getUntracked());
+		                logger.debug("\t\tUntrackedFolders: " + status.getUntrackedFolders());
+					}
+					if(status.getAdded().size() + status.getChanged().size() +status.getRemoved().size() > 0) {
+						String msg = "Updating submodule "+walk.getModuleName()+" to track head of branch "+trackedBranch;
+						logger.debug("\t\tgit commit -m \""+msg+"\"");
 						parentgit.commit()
-							.setMessage("Updating submodule "+walk.getModuleName()+" to track head of branch "+trackedBranch)
+							.setMessage(msg)
 							.setAllowEmpty(false)
 							.call();
 					}
@@ -337,15 +348,23 @@ public class GitModuleManager {
 			
 			/*Collection<String> submoduleUpdateRes = new SubmoduleUpdateCommand(parentgit.getRepository()).call();
 			for (String s : submoduleUpdateRes) {
-				System.out.println(
+				logger.info(
 						"\tupdating submodules: " + s);
 			}*/
 			Iterable<PushResult> pushResps = parentgit.push()
 				.setCredentialsProvider(credentialProvider)
 				.call();
 			for (PushResult pushRes : pushResps) {
-				System.out.println(
-						pushRes + " ; " + pushRes.getMessages() + " ; " + pushRes.getRemoteUpdates());
+				for (RemoteRefUpdate pushResult : pushRes.getRemoteUpdates()) {
+					if(pushResult.getStatus() == RemoteRefUpdate.Status.OK) {
+						logger.info("push branch "+consideredBranch+" => "+RemoteRefUpdate.Status.OK);
+					} else if(pushResult.getStatus() == RemoteRefUpdate.Status.UP_TO_DATE) {
+						logger.info("nothing to push for branch "+consideredBranch+" => "+RemoteRefUpdate.Status.UP_TO_DATE);
+						
+					} else {
+						logger.error("PB pushing branch "+consideredBranch+" => "+pushRes.getMessages()+"\" "+pushResult);
+					}
+				}
 				validateRemoteRefUpdates("push submodule tracking branch", pushRes.getRemoteUpdates());
 			}
 		}

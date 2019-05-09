@@ -1,3 +1,3 @@
-File touchFile = new File( basedir, "target/touch.txt" );
+File touchFile = new File( basedir, "target/syncgitsubmodules_repo" );
 
-assert touchFile.isFile()
+assert touchFile.isDirectory()

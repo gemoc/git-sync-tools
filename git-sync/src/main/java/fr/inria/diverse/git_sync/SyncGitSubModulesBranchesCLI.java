@@ -11,6 +11,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import fr.inria.diverse.git_sync.gittool.GitModuleManager;
 
@@ -18,6 +20,7 @@ public class SyncGitSubModulesBranchesCLI {
 
 	public static void main(String[] args) throws Exception {
 		
+		   
 		Options options = new Options();
 		options.addOption("p", "password", true, "password for authentification (optionnal if the username is a github token)")
 			.addOption("u", "user", true, "username or github token for authentification")
@@ -52,9 +55,9 @@ public class SyncGitSubModulesBranchesCLI {
 		UsernamePasswordCredentialsProvider credProvider = new UsernamePasswordCredentialsProvider( userOrToken, password );
 		GitModuleManager gitManager = new GitModuleManager(parentGitURL, outputDirectory.getAbsolutePath(), credProvider);
     	gitManager.gitClone();
-    	gitManager.listAllBranches();
-    	gitManager.listMasterSubModules();
-    	gitManager.listAllSubmodulesBranches();
+    	//gitManager.listAllBranches();
+    	//gitManager.listMasterSubModules();
+    	//gitManager.listAllSubmodulesBranches();
     	Set<String> relevantBranches = gitManager.collectAllSubmodulesRemoteBranches();
     	gitManager.deleteBranchesNotIn(relevantBranches);
     	gitManager.createMissingParentBranches(relevantBranches);

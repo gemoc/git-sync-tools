@@ -20,14 +20,16 @@
         <artifactId>@project.artifactId@</artifactId>
         <version>@project.version@</version>
         <configuration>
-        	<rootGitURL>git@github.com:dvojtise/my_test_root_module.git</rootGitURL>
+        	<parentGitURL>git@github.com:dvojtise/my_test_root_module.git</parentGitURL>
+        	<userOrToken>@userOrToken@</userOrToken>
+        	<password>@password@</password>
         </configuration>
         <executions>
           <execution>
-            <id>touch</id>
+            <id>synch</id>
             <phase>validate</phase>
             <goals>
-              <goal>touch</goal>
+              <goal>synch</goal>
             </goals>
           </execution>
         </executions>

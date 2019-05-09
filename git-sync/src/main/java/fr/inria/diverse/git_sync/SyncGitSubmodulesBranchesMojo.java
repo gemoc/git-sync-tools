@@ -34,7 +34,7 @@ import fr.inria.diverse.git_sync.gittool.GitModuleManager;
  * - update heads of the root repo to the head of each submodules
  *
  */
-@Mojo( name = "touch", defaultPhase = LifecyclePhase.PROCESS_SOURCES )
+@Mojo( name = "synch", defaultPhase = LifecyclePhase.PROCESS_SOURCES )
 public class SyncGitSubmodulesBranchesMojo
     extends AbstractMojo
 {
