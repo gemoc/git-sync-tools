@@ -35,7 +35,6 @@ public class GitModuleManager {
 	String localGitFolder;
 	CredentialsProvider credentialProvider;
 
-	Set<String> remoteBranchesNames = new HashSet<String>();
 
 	public GitModuleManager(String gitRemoteURL, String localGitFolder, CredentialsProvider credentialProvider) {
 		this.gitRemoteURL = gitRemoteURL;
@@ -318,23 +317,29 @@ public class GitModuleManager {
 					
 					Status status = parentgit.status().call();
 					if(!status.isClean()) {
-						System.out.println("Added: " + status.getAdded());
-		                System.out.println("Changed: " + status.getChanged());
-		                System.out.println("Conflicting: " + status.getConflicting());
-		                System.out.println("ConflictingStageState: " + status.getConflictingStageState());
-		                System.out.println("IgnoredNotInIndex: " + status.getIgnoredNotInIndex());
-		                System.out.println("Missing: " + status.getMissing());
-		                System.out.println("Modified: " + status.getModified());
-		                System.out.println("Removed: " + status.getRemoved());
-		                System.out.println("Untracked: " + status.getUntracked());
-		                System.out.println("UntrackedFolders: " + status.getUntrackedFolders());
+						System.out.println("\t\tAdded: " + status.getAdded());
+		                System.out.println("\t\tChanged: " + status.getChanged());
+		                System.out.println("\t\tConflicting: " + status.getConflicting());
+		                System.out.println("\t\tConflictingStageState: " + status.getConflictingStageState());
+		                System.out.println("\t\tIgnoredNotInIndex: " + status.getIgnoredNotInIndex());
+		                System.out.println("\t\tMissing: " + status.getMissing());
+		                System.out.println("\t\tModified: " + status.getModified());
+		                System.out.println("\t\tRemoved: " + status.getRemoved());
+		                System.out.println("\t\tUntracked: " + status.getUntracked());
+		                System.out.println("\t\tUntrackedFolders: " + status.getUntrackedFolders());
 						parentgit.commit()
-							.setMessage("Make submodule "+walk.getModuleName()+" tracking branch "+trackedBranch)
+							.setMessage("Updating submodule "+walk.getModuleName()+" to track head of branch "+trackedBranch)
 							.setAllowEmpty(false)
 							.call();
 					}
 				}
 			}
+			
+			/*Collection<String> submoduleUpdateRes = new SubmoduleUpdateCommand(parentgit.getRepository()).call();
+			for (String s : submoduleUpdateRes) {
+				System.out.println(
+						"\tupdating submodules: " + s);
+			}*/
 			Iterable<PushResult> pushResps = parentgit.push()
 				.setCredentialsProvider(credentialProvider)
 				.call();
