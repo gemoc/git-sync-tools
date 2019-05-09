@@ -39,6 +39,7 @@ public class GitModuleManager {
 	String gitRemoteURL;
 	String localGitFolder;
 	CredentialsProvider credentialProvider;
+	String masterBranchName = "master";
 
 
 	public GitModuleManager(String gitRemoteURL, String localGitFolder, CredentialsProvider credentialProvider) {
@@ -47,7 +48,7 @@ public class GitModuleManager {
 		this.credentialProvider = credentialProvider;
 	}
 
-	public void gitClone() throws InvalidRemoteException, TransportException, GitAPIException {
+	public void gitClone() throws InvalidRemoteException, TransportException, GitAPIException, IOException {
 		File localPath = new File(localGitFolder);
 		logger.info("Cloning from " + gitRemoteURL + " to " + localPath);
 		try (Git result = Git.cloneRepository().setURI(gitRemoteURL).setDirectory(localPath).setCloneSubmodules(true)
@@ -55,6 +56,9 @@ public class GitModuleManager {
 			// Note: the call() returns an opened repository already which needs to be
 			// closed to avoid file handle leaks!
 			logger.info("Having repository: " + result.getRepository().getDirectory());
+			this.masterBranchName = result.getRepository().getBranch();
+			logger.info("master branch name: " + this.masterBranchName);
+			
 		}
 	}
 
@@ -88,19 +92,22 @@ public class GitModuleManager {
 		}
 	}
 
-	public void listMasterSubModules() throws IOException, GitAPIException {
+	public void listSubModules() throws IOException, GitAPIException {
 		FileRepositoryBuilder builder = new FileRepositoryBuilder();
 		try (Repository repository = builder.setMustExist(true).setGitDir(new File(localGitFolder + "/.git"))
 				.readEnvironment() // scan environment GIT_* variables
 				.findGitDir() // scan up the file system tree
 				.build()) {
 
-			logger.info("submodules on branch " + repository.getBranch()+" :");
+			logger.info("Listing submodules on branch " + repository.getBranch()+" :");
 
 			try (Git parentgit = new Git(repository)) {
 				Map<String, SubmoduleStatus> submodules = parentgit.submoduleStatus().call();
 				for (String submoduleName : submodules.keySet()) {
 					logger.info("\t" + submoduleName);
+				}
+				if(submodules.keySet().isEmpty()) {
+					logger.warn("No Submodules defined in branch "+repository.getBranch());
 				}
 			}
 		}
@@ -183,7 +190,7 @@ public class GitModuleManager {
 				for (Ref ref : call) {
 					if (ref.getName().startsWith("refs/remotes")) {
 						String branchName = ref.getName().substring(ref.getName().lastIndexOf("/") + 1);
-						if (!relevantBranches.contains(branchName)) {
+						if (!relevantBranches.contains(branchName) && !branchName.equals(masterBranchName)) {
 							logger.info("\tdeleting branch " + ref.getName() + "  " + ref);
 							// delete locally
 							parentgit.branchDelete().setBranchNames(ref.getName()).setForce(true).call();

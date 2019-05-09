@@ -64,13 +64,14 @@ public class SyncGitSubmodulesBranchesMojo
 		GitModuleManager gitManager = new GitModuleManager(parentGitURL, outputDirectory.getAbsolutePath(), credProvider);
     	try {
 			gitManager.gitClone();
-
+			gitManager.listSubModules();
 	    	Set<String> relevantBranches = gitManager.collectAllSubmodulesRemoteBranches();
 	    	gitManager.deleteBranchesNotIn(relevantBranches);
 	    	gitManager.createMissingParentBranches(relevantBranches);
 	    	gitManager.updateAllBranchesModules();
 		} catch (Exception e) {
 			getLog().error( e);
+			throw new MojoExecutionException(e.getMessage(), e);
 		}
     	
  
