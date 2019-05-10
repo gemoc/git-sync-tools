@@ -65,6 +65,8 @@ public class SyncGitSubmodulesBranchesMojo
     {
     	getLog().debug( "###############################################");
     	getLog().info( "parentGitURL="+parentGitURL);
+    	getLog().info( "committerName="+committerName);
+    	getLog().info( "committerEmail="+committerEmail);
     	
 		// https://www.codeaffine.com/2014/12/09/jgit-authentication/
     	if(userOrToken == null || password == null) {
