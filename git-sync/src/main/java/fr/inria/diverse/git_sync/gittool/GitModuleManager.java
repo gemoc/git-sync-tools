@@ -51,7 +51,7 @@ public class GitModuleManager {
 		this.gitRemoteURL = gitRemoteURL;
 		this.localGitFolder = localGitFolder;
 		this.credentialProvider = credentialProvider;
-		if(!committerName.isEmpty() && ! committerEmail.isEmpty()) {
+		if(!(committerName== null || committerName.isEmpty()) && ! (committerEmail == null || committerEmail.isEmpty())) {
 			this.committer = new PersonIdent(committerName, committerEmail);
 		}
 	}

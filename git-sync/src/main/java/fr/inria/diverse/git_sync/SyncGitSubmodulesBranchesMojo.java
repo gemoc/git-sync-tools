@@ -47,10 +47,10 @@ public class SyncGitSubmodulesBranchesMojo
     @Parameter(property="parentGitURL", required = true)
     private String parentGitURL;
     
-    @Parameter(property="userOrToken", required = true)
+    @Parameter(property="userOrToken")
     private String userOrToken;
     
-    @Parameter(defaultValue = "", property="password", required = true)
+    @Parameter(defaultValue = "", property="password")
     private String password;
 
     
@@ -67,6 +67,10 @@ public class SyncGitSubmodulesBranchesMojo
     	getLog().info( "parentGitURL="+parentGitURL);
     	
 		// https://www.codeaffine.com/2014/12/09/jgit-authentication/
+    	if(userOrToken == null || password == null) {
+    		throw new MojoExecutionException("Missing user name or password for authentification");
+    	}
+    	getLog().info("Using UsernamePassword authentification");
 		UsernamePasswordCredentialsProvider credProvider = new UsernamePasswordCredentialsProvider( userOrToken, password );
 		GitModuleManager gitManager = new GitModuleManager(parentGitURL, outputDirectory.getAbsolutePath(), credProvider,
 				committerName,
