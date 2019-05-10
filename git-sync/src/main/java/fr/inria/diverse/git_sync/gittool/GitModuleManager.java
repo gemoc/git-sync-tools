@@ -18,6 +18,7 @@ import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileBasedConfig;
@@ -40,12 +41,19 @@ public class GitModuleManager {
 	String localGitFolder;
 	CredentialsProvider credentialProvider;
 	String masterBranchName = "master";
+	PersonIdent committer = null;
 
 
-	public GitModuleManager(String gitRemoteURL, String localGitFolder, CredentialsProvider credentialProvider) {
+	public GitModuleManager(String gitRemoteURL, String localGitFolder, 
+			CredentialsProvider credentialProvider, 
+			String committerName,
+			String committerEmail) {
 		this.gitRemoteURL = gitRemoteURL;
 		this.localGitFolder = localGitFolder;
 		this.credentialProvider = credentialProvider;
+		if(!committerName.isEmpty() && ! committerEmail.isEmpty()) {
+			this.committer = new PersonIdent(committerName, committerEmail);
+		}
 	}
 
 	public void gitClone() throws InvalidRemoteException, TransportException, GitAPIException, IOException {
@@ -196,7 +204,9 @@ public class GitModuleManager {
 							parentgit.branchDelete().setBranchNames(ref.getName()).setForce(true).call();
 							// delete remotely too
 							RefSpec refSpec = new RefSpec().setSource(null).setDestination("refs/heads/" + branchName);
-							Iterable<PushResult> res = parentgit.push().setRefSpecs(refSpec).setRemote("origin")
+							Iterable<PushResult> res = parentgit.push()
+									.setRefSpecs(refSpec)
+									.setRemote("origin")
 									.setCredentialsProvider(credentialProvider).call();
 							for (PushResult pushRes : res) {
 								logger.info(
@@ -246,7 +256,10 @@ public class GitModuleManager {
 		for (Ref ref : refs) {
 			if (ref.getName().equals("refs/heads/" + missingParentBranch)) {
 				logger.info("Removing branch before");
-				parentgit.branchDelete().setBranchNames(missingParentBranch).setForce(true).call();
+				parentgit.branchDelete()
+					.setBranchNames(missingParentBranch)
+					.setForce(true)
+					.call();
 				break;
 			}
 		}
@@ -348,6 +361,7 @@ public class GitModuleManager {
 						parentgit.commit()
 							.setMessage(msg)
 							.setAllowEmpty(false)
+							.setCommitter(committer)
 							.call();
 					}
 				}

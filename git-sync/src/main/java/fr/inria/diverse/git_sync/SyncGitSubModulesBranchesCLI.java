@@ -11,8 +11,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import fr.inria.diverse.git_sync.gittool.GitModuleManager;
 
@@ -25,7 +23,9 @@ public class SyncGitSubModulesBranchesCLI {
 		options.addOption("p", "password", true, "password for authentification (optionnal if the username is a github token)")
 			.addOption("u", "user", true, "username or github token for authentification")
 			.addOption("f", "folder", true, "path to folder where to do the checkout, if not set, will default to a temp folder")
-			.addOption("g", "gitURL", true, "git URL that will be cloned");
+			.addOption("g", "gitURL", true, "git URL that will be cloned")
+			.addOption("c", "committerName", true, "name of the committer who'll sign the commit")
+			.addOption("e", "committerEmail", true, "email of the committer who'll sign the commit");
 		
 		
 		
@@ -38,6 +38,8 @@ public class SyncGitSubModulesBranchesCLI {
 		String password = cmd.hasOption("p") ? cmd.getOptionValue("p") : "";
 		String parentGitURL = cmd.hasOption("g") ? cmd.getOptionValue("g") : "";
 		String directoryPath = cmd.hasOption("f") ? cmd.getOptionValue("f") : "";
+		String committerName = cmd.hasOption("c") ? cmd.getOptionValue("c") : "";
+		String committerEmail = cmd.hasOption("e") ? cmd.getOptionValue("e") : "";
 		
 		if(parentGitURL.isEmpty()) {
 			HelpFormatter formatter = new HelpFormatter();
@@ -53,7 +55,9 @@ public class SyncGitSubModulesBranchesCLI {
 		}
 		// https://www.codeaffine.com/2014/12/09/jgit-authentication/
 		UsernamePasswordCredentialsProvider credProvider = new UsernamePasswordCredentialsProvider( userOrToken, password );
-		GitModuleManager gitManager = new GitModuleManager(parentGitURL, outputDirectory.getAbsolutePath(), credProvider);
+		GitModuleManager gitManager = new GitModuleManager(parentGitURL, outputDirectory.getAbsolutePath(), credProvider,
+				committerName,
+				committerEmail);
     	gitManager.gitClone();
     	//gitManager.listAllBranches();
     	//gitManager.listMasterSubModules();

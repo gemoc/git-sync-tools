@@ -53,6 +53,13 @@ public class SyncGitSubmodulesBranchesMojo
     @Parameter(defaultValue = "", property="password", required = true)
     private String password;
 
+    
+    @Parameter(defaultValue = "", property="committerEmail")
+    private String committerEmail;
+    
+    @Parameter(defaultValue = "", property="committerName")
+    private String committerName;
+    
     public void execute()
         throws MojoExecutionException
     {
@@ -61,7 +68,9 @@ public class SyncGitSubmodulesBranchesMojo
     	
 		// https://www.codeaffine.com/2014/12/09/jgit-authentication/
 		UsernamePasswordCredentialsProvider credProvider = new UsernamePasswordCredentialsProvider( userOrToken, password );
-		GitModuleManager gitManager = new GitModuleManager(parentGitURL, outputDirectory.getAbsolutePath(), credProvider);
+		GitModuleManager gitManager = new GitModuleManager(parentGitURL, outputDirectory.getAbsolutePath(), credProvider,
+				committerName,
+				committerEmail);
     	try {
 			gitManager.gitClone();
 			gitManager.listSubModules();
