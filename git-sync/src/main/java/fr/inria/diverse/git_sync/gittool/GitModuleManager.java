@@ -299,7 +299,7 @@ public class GitModuleManager {
 
 	public void updateBranchesForModules(Git parentgit, String consideredBranch)
 			throws GitAPIException, GitSyncError, IOException, ConfigInvalidException {
-		logger.info("updateBranchesForModules branch=" + consideredBranch);
+		logger.info("updateBranchesForModules branch = " + consideredBranch);
 		// switch parentGit to branch
 		checkoutBranch(parentgit, consideredBranch);
 		
@@ -321,7 +321,7 @@ public class GitModuleManager {
 							}
 						}
 					}
-					logger.info("\tneed to track module " + walk.getModuleName() + " on branch " + trackedBranch);
+					logger.info(String.format("  tracking module %1$-25s on branch ", walk.getModuleName(), trackedBranch));
 						
 					// Make sure the parent repo knows that its submodule now tracks a branch:
 					FileBasedConfig modulesConfig = new FileBasedConfig(new File(
