@@ -18,7 +18,8 @@ Typical example:
 - Repo-C
 - Integration-Repo
 
-Repo-A, Repo-B and Repo-C contains the source tha need to be aggregated
+Repo-A, Repo-B and Repo-C contain the source that need to be aggregated
+
 Integration-Repo is a git repo with 3 submodules (one submodule for each of the Repo-x) defined in it master branch.
 
 The goal of the script is to:
@@ -35,5 +36,103 @@ mvn clean install
 ```
 
 ## Usage
+
+
+Fisrt define the sub modules in the master branch of the integration repository. (use `git submodule add <URL of Repo-A>`)
+
+Add a `pom.xml` in the repository (in a subfolder, eg. "scripts") with a content similar to:
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.eclipse.gemoc-studio</groupId>
+  <artifactId>sync-submodules</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <description>Project in charge of synchronizing branches of submodules for integration build</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <gituser.name>${env.GITUSER_NAME}</gituser.name>
+    <gituser.password>${env.GITUSER_PASSWORD}</gituser.password>
+    <gituser.email></gituser.email>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>fr.inria.diverse</groupId>
+        <artifactId>git-sync</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <configuration>
+        	<parentGitURL>git@github.com:myorganisation/integration-repo.git</parentGitURL> <!-- replace here with the git url of your Integration-Repo --> 
+        	<userOrToken>${gituser.name}</userOrToken>
+        	<password>${gituser.password}</password>
+        	<committerName>${gituser.name}</committerName>
+        	<committerEmail>${gituser.email}</committerEmail>
+        </configuration>
+        <executions>
+          <execution>
+            <id>synch</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>synch</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  	<pluginRepositories>
+		<pluginRepository>
+			<id>maven-inria-release</id>
+			<name>maven.inria.fr</name>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</snapshots>
+			<url>http://maven.inria.fr/artifactory/public-release</url>
+			<layout>default</layout>
+		</pluginRepository>
+		<pluginRepository>
+			<id>maven-inria-snapshot</id>
+			<name>maven.inria.fr</name>
+			<releases>
+				<enabled>false</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</snapshots>
+			<url>http://maven.inria.fr/artifactory/public-snapshot</url>
+			<layout>default</layout>
+		</pluginRepository>
+	</pluginRepositories>
+</project>    
+```
+
+
+then configure a CI to either:
+- periodically launch this script (via a `mvn clean verify`) 
+  the script must be launched with the following variable (use hidden variable as this is credentials) allowing to commit in the Integration-Repo
+  (I strongly suggest using a bot account instead of your own account)
+  - GITUSER_NAME
+  - GITUSER_PASSWORD
+- or configure each of the Repo-x to trigger a build (using for ex webhooks)
+
+
+The root of the Integration-Repo can then contains a CI specific configuration file (Jenkinsfile or .gitlab-ci.yml) to build the entire application with a checkout of all the sources.
 
 
