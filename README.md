@@ -35,7 +35,8 @@ cd git-sync
 mvn clean install
 ```
 
-https://github.com/dvojtise/git-sync/actions/workflows/maven/badge.svg
+![maven workflow](https://github.com/dvojtise/git-sync/actions/workflows/maven.yml/badge.svg)
+
 
 ## Usage
 
