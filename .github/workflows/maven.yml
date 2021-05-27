@@ -31,8 +31,8 @@ jobs:
       working-directory: git-sync
       run: mvn -B package --file pom.xml
     - name: Upload Artifacts
-    - run: mkdir staging && cp git-sync/target/*.jar staging
-    - uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v2
       with:
         name: Package
-        path: staging
+        path: git-sync/target
+        
