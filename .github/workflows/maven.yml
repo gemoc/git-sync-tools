@@ -29,8 +29,9 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
     - name: Build with Maven
       working-directory: git-sync
-    - run: mvn -B package --file pom.xml
-    - run: mkdir ../staging && cp target/*.jar ../staging
+      run: mvn -B package --file pom.xml
+    - name: Stage result files
+      run: mkdir staging && cp git-sync/target/*.jar staging
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
