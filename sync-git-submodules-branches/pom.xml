@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.gemoc.git-sync-tools</groupId>
-  <artifactId>sync-git-submodules-branches</artifactId>
+  <artifactId>sync-git-submodules-branches-plugin</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
