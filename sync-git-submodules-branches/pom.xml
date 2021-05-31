@@ -3,14 +3,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>fr.inria.diverse</groupId>
-  <artifactId>git-sync</artifactId>
+  <artifactId>sync-git-submodules-branches</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
-  <name>git-sync Maven Plugin</name>
+  <name>sync-git-submodules-branches Maven Plugin</name>
 
   <!-- FIXME change it to the project's website -->
-  <url>http://maven.apache.org</url>
+  <url>https://github.com/gemoc/git-sync-tools</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -71,7 +71,7 @@
         <artifactId>maven-plugin-plugin</artifactId>
         <version>3.5.2</version>
         <configuration>
-          <goalPrefix>git-sync</goalPrefix>
+          <goalPrefix>sync-git-submodules-branches</goalPrefix>
           <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
         </configuration>
         <executions>
@@ -94,8 +94,8 @@
   <distributionManagement>
    <repository>
      <id>github</id>
-     <name>GitHub dvojtise Apache Maven Packages</name>
-     <url>https://maven.pkg.github.com/dvojtise/git-sync</url>
+     <name>GitHub Gemoc Apache Maven Packages</name>
+     <url>https://maven.pkg.github.com/gemoc/sync-git-submodules-branches</url>
    </repository>
 </distributionManagement>
   <profiles>
