@@ -33,7 +33,7 @@ jobs:
       working-directory: sync-git-submodules-branches
       run: mvn -B package --file pom.xml
     - name: Stage result files
-      run: mkdir staging && cp git-sync/target/*.jar staging
+      run: mkdir staging && cp sync-git-submodules-branches/target/*.jar staging
     - name: Upload Artifacts
       uses: actions/upload-artifact@v2
       with:
