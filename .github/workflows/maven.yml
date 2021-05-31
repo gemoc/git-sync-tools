@@ -32,6 +32,11 @@ jobs:
     - name: Build with Maven
       working-directory: sync-git-submodules-branches
       run: mvn -B package --file pom.xml
+    - name: Publish to GitHub Packages Apache Maven
+      working-directory: sync-git-submodules-branches
+      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
     - name: Stage result files
       run: mkdir staging && cp sync-git-submodules-branches/target/*.jar staging
     - name: Upload Artifacts
@@ -39,9 +44,5 @@ jobs:
       with:
         name: Package
         path: staging
-    - name: Publish to GitHub Packages Apache Maven
-      working-directory: sync-git-submodules-branches
-      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
+
         
