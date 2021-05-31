@@ -95,7 +95,7 @@
    <repository>
      <id>github</id>
      <name>GitHub Gemoc Apache Maven Packages</name>
-     <url>https://maven.pkg.github.com/gemoc/sync-git-submodules-branches</url>
+     <url>https://maven.pkg.github.com/gemoc/git-sync-tools</url>
    </repository>
 </distributionManagement>
   <profiles>
