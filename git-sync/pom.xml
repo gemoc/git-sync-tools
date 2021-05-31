@@ -91,6 +91,13 @@
       </plugin>
     </plugins>
   </build>
+  <distributionManagement>
+   <repository>
+     <id>github</id>
+     <name>GitHub dvojtise Apache Maven Packages</name>
+     <url>https://maven.pkg.github.com/dvojtise/git-sync</url>
+   </repository>
+</distributionManagement>
   <profiles>
     <profile>
       <id>run-its</id>
