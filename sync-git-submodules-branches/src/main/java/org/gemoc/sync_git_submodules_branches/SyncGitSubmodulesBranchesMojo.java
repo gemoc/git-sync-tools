@@ -1,4 +1,4 @@
-package fr.inria.diverse.git_sync;
+package org.gemoc.sync_git_submodules_branches;
 
 import java.io.File;
 import java.util.Set;
@@ -25,8 +25,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-
-import fr.inria.diverse.git_sync.gittool.GitModuleManager;
+import org.gemoc.sync_git_submodules_branches.gittool.GitModuleManager;
 
 /**
  * Goal which updates a git repo having submodules in order to:

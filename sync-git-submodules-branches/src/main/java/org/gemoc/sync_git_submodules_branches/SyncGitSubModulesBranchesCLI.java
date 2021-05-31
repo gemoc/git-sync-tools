@@ -1,4 +1,4 @@
-package fr.inria.diverse.git_sync;
+package org.gemoc.sync_git_submodules_branches;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -11,8 +11,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-
-import fr.inria.diverse.git_sync.gittool.GitModuleManager;
+import org.gemoc.sync_git_submodules_branches.gittool.GitModuleManager;
 
 public class SyncGitSubModulesBranchesCLI {
 

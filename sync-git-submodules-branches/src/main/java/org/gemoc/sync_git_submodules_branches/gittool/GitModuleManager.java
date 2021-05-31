@@ -1,4 +1,4 @@
-package fr.inria.diverse.git_sync.gittool;
+package org.gemoc.sync_git_submodules_branches.gittool;
 
 import java.io.File;
 import java.io.IOException;
