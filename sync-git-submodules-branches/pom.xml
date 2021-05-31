@@ -100,7 +100,7 @@
    <repository>
      <id>maven-inria</id>
      <name>maven.inria.fr</name>
-     <url>https://maven.inria.fr/artifactory/triskell-public-snapshot/</url>
+     <url>http://maven.inria.fr/artifactory/triskell-public-snapshot/</url>
    </repository>
 </distributionManagement>
   <profiles>
