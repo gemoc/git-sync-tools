@@ -38,8 +38,8 @@ jobs:
       working-directory: sync-git-submodules-branches
       run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
       env:
-        MAVEN_USERNAME: ${{ secrets.MAVEN_INRIA_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.MAVEN_INRIA_TOKEN }}
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
     - name: Stage result files
       run: mkdir staging && cp sync-git-submodules-branches/target/*.jar staging
     - name: Upload Artifacts

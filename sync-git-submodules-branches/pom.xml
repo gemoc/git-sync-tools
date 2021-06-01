@@ -97,11 +97,20 @@
      <name>GitHub Gemoc Apache Maven Packages</name>
      <url>https://maven.pkg.github.com/gemoc/git-sync-tools</url>
    </repository> -->
-   <repository>
+<!--    <repository>
      <id>maven-inria</id>
      <name>maven.inria.fr</name>
      <url>http://maven.inria.fr/artifactory/triskell-public-snapshot/</url>
-   </repository>
+   </repository> -->
+    <snapshotRepository>
+	    <id>ossrh</id>
+	    <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+	</snapshotRepository>
+	<repository>
+	  	<id>ossrh</id>
+	    <name>Central Repository OSSRH</name>
+		<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+	</repository>
 </distributionManagement>
   <profiles>
     <profile>
