@@ -2,7 +2,9 @@ package org.gemoc.sync_git_submodules_branches.gittool;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,8 @@ import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileBasedConfig;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.submodule.SubmoduleStatus;
@@ -29,6 +33,7 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
+import org.eclipse.jgit.util.time.MonotonicSystemClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,9 +156,14 @@ public class GitModuleManager {
 	 * @throws IOException
 	 * @throws GitAPIException
 	 */
-	public Set<String> collectAllSubmodulesRemoteBranches() throws IOException, GitAPIException {
+	public Set<String> collectAllSubmodulesActiveRemoteBranches(int inactivityThreshold) throws IOException, GitAPIException {
 		Set<String> remoteBranchesNames = new HashSet<String>();
 		FileRepositoryBuilder builder = new FileRepositoryBuilder();
+		
+		//Date now = new Date();
+		ZonedDateTime now = ZonedDateTime.now();
+		ZonedDateTime inactivityThresholdDate = now.plusDays(- inactivityThreshold);
+		boolean useInactivityThreshold = inactivityThreshold >= 0; 
 
 		try (Repository parentRepository = builder.setMustExist(true).setGitDir(new File(localGitFolder + "/.git"))
 				.readEnvironment() // scan environment GIT_* variables
@@ -165,12 +175,30 @@ public class GitModuleManager {
 					Repository submoduleRepository = walk.getRepository();
 					try (Git submodulegit = Git.wrap(submoduleRepository)) {
 						logger.info("remote branches in submodule " + walk.getModuleName() + ":");
-						List<Ref> call = submodulegit.branchList().setListMode(ListMode.REMOTE).call();
-						for (Ref ref : call) {
-							if (ref.getName().startsWith("refs/remotes")) {
-								String branchName = ref.getName().substring(ref.getName().lastIndexOf("/") + 1);
-								logger.info("\t" + branchName);
-								remoteBranchesNames.add(branchName);
+						List<Ref> branches = submodulegit.branchList().setListMode(ListMode.REMOTE).call();
+						for (Ref branch : branches) {
+							if (branch.getName().startsWith("refs/remotes")) {
+								String branchName = branch.getName().substring(branch.getName().lastIndexOf("/") + 1);
+								//logger.info("\t" + branchName);
+								
+								// find branch age
+								RevWalk walkSubModuleGit = new RevWalk(submodulegit.getRepository());
+								RevCommit latestCommit = walkSubModuleGit.parseCommit(branch.getObjectId());
+								
+								
+								//RevCommit latestCommit = submodulegit.log().setMaxCount(1).call().iterator().next();
+								Date latestCommitDate =latestCommit.getAuthorIdent().getWhen();
+								if(useInactivityThreshold) {
+									if(latestCommitDate.toInstant().isBefore(inactivityThresholdDate.toInstant())) {
+										logger.info("\t" + branchName +" is INACTIVE since "+latestCommitDate.toString());
+									} else {
+										logger.info("\t" + branchName +" is active ("+latestCommitDate.toString()+latestCommit.getShortMessage()+")");
+										remoteBranchesNames.add(branchName);
+									}
+								} else {
+									logger.info("\t" + branchName);
+									remoteBranchesNames.add(branchName);
+								}
 							}
 						}
 					}

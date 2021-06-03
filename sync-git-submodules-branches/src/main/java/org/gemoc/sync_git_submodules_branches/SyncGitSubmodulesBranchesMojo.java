@@ -28,9 +28,9 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.gemoc.sync_git_submodules_branches.gittool.GitModuleManager;
 
 /**
- * Goal which updates a git repo having submodules in order to:
+ * Goal that updates a git repository having submodules in order to:
  * - have a branch corresponding to each available submodule branches
- * - update heads of the root repo to the head of each submodules
+ * - update heads of the root repository to the head of each submodules
  *
  */
 @Mojo( name = "synch", defaultPhase = LifecyclePhase.PROCESS_SOURCES )
@@ -59,6 +59,14 @@ public class SyncGitSubmodulesBranchesMojo
     @Parameter(defaultValue = "", property="committerName")
     private String committerName;
     
+    /**
+     * number of days since the last commit of a specific branch 
+     * The branch will be considered old/unmaintained /inactive
+     * if all branches (except main/master branch) are inactive, then the branch is removed from the main integration repository 
+     */
+    @Parameter(defaultValue = "90", property = "inactivityThreshold")
+    private Integer inactivityThreshold;
+    
     public void execute()
         throws MojoExecutionException
     {
@@ -66,6 +74,7 @@ public class SyncGitSubmodulesBranchesMojo
     	getLog().info( "parentGitURL="+parentGitURL);
     	getLog().info( "committerName="+committerName);
     	getLog().info( "committerEmail="+committerEmail);
+    	getLog().info( "inactivityThreshold="+inactivityThreshold+" days");
     	
 		// https://www.codeaffine.com/2014/12/09/jgit-authentication/
     	if(userOrToken == null || password == null) {
@@ -79,7 +88,7 @@ public class SyncGitSubmodulesBranchesMojo
     	try {
 			gitManager.gitClone();
 			gitManager.listSubModules();
-	    	Set<String> relevantBranches = gitManager.collectAllSubmodulesRemoteBranches();
+	    	Set<String> relevantBranches = gitManager.collectAllSubmodulesActiveRemoteBranches(inactivityThreshold);
 	    	gitManager.deleteBranchesNotIn(relevantBranches);
 	    	gitManager.createMissingParentBranches(relevantBranches);
 	    	gitManager.updateAllBranchesModules();

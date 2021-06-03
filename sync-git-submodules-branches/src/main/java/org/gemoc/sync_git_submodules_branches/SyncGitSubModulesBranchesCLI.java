@@ -24,7 +24,8 @@ public class SyncGitSubModulesBranchesCLI {
 			.addOption("f", "folder", true, "path to folder where to do the checkout, if not set, will default to a temp folder")
 			.addOption("g", "gitURL", true, "git URL that will be cloned")
 			.addOption("c", "committerName", true, "name of the committer who'll sign the commit")
-			.addOption("e", "committerEmail", true, "email of the committer who'll sign the commit");
+			.addOption("e", "committerEmail", true, "email of the committer who'll sign the commit")
+			.addOption("i", "inactivityThreshold", true, "number of days since the last commit of a specific branch before considering the branch as old/unmaintained/inactive (-1 for infinite duration)");
 		
 		
 		
@@ -39,6 +40,7 @@ public class SyncGitSubModulesBranchesCLI {
 		String directoryPath = cmd.hasOption("f") ? cmd.getOptionValue("f") : "";
 		String committerName = cmd.hasOption("c") ? cmd.getOptionValue("c") : "";
 		String committerEmail = cmd.hasOption("e") ? cmd.getOptionValue("e") : "";
+		String inactivityThreshold = cmd.hasOption("i") ? cmd.getOptionValue("i") : "";
 		
 		if(parentGitURL.isEmpty()) {
 			HelpFormatter formatter = new HelpFormatter();
@@ -61,7 +63,7 @@ public class SyncGitSubModulesBranchesCLI {
     	//gitManager.listAllBranches();
     	//gitManager.listMasterSubModules();
     	//gitManager.listAllSubmodulesBranches();
-    	Set<String> relevantBranches = gitManager.collectAllSubmodulesRemoteBranches();
+    	Set<String> relevantBranches = gitManager.collectAllSubmodulesActiveRemoteBranches(Integer.parseInt(inactivityThreshold));
     	gitManager.deleteBranchesNotIn(relevantBranches);
     	gitManager.createMissingParentBranches(relevantBranches);
     	gitManager.updateAllBranchesModules();
