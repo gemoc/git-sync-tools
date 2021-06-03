@@ -9,6 +9,7 @@
 	<packaging>maven-plugin</packaging>
 
 	<name>sync-git-submodules-branches Maven Plugin</name>
+	<description>Plugin allowing to create/delete/synchronize branches according to git submodule branches</description>
 
 	<!-- FIXME change it to the project's website -->
 	<url>https://github.com/gemoc/git-sync-tools</url>
