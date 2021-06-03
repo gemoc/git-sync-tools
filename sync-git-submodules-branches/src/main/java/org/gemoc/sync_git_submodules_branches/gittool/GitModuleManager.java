@@ -33,10 +33,13 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
-import org.eclipse.jgit.util.time.MonotonicSystemClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+/**
+ * Main class implementing the features of the git sync tool
+ */
 public class GitModuleManager {
 
 	Logger logger = LoggerFactory.getLogger(GitModuleManager.class);
@@ -49,6 +52,15 @@ public class GitModuleManager {
 	PersonIdent committer = null;
 
 
+	/**
+	 * Constructor
+	 * 
+	 * @param gitRemoteURL url of git that need to be updated
+	 * @param localGitFolder folder containing the local copy
+	 * @param credentialProvider provider of credential for pushing to the remote repository
+	 * @param committerName name to use when commiting
+	 * @param committerEmail email to use when commiting
+	 */
 	public GitModuleManager(String gitRemoteURL, String localGitFolder, 
 			CredentialsProvider credentialProvider, 
 			String committerName,
@@ -61,6 +73,14 @@ public class GitModuleManager {
 		}
 	}
 
+	/**
+	 * Clone the gitRemoteURL repository to localGitFolder
+	 * 
+	 * @throws InvalidRemoteException
+	 * @throws TransportException
+	 * @throws GitAPIException
+	 * @throws IOException
+	 */
 	public void gitClone() throws InvalidRemoteException, TransportException, GitAPIException, IOException {
 		File localPath = new File(localGitFolder);
 		logger.info("Cloning from " + gitRemoteURL + " to " + localPath);
@@ -152,9 +172,7 @@ public class GitModuleManager {
 	}
 
 	/**
-	 * 
-	 * @throws IOException
-	 * @throws GitAPIException
+	 * Collect the name of all branches that are active in any of the submodules declared in the main branch of the root repository
 	 */
 	public Set<String> collectAllSubmodulesActiveRemoteBranches(int inactivityThreshold) throws IOException, GitAPIException {
 		Set<String> remoteBranchesNames = new HashSet<String>();
@@ -325,6 +343,16 @@ public class GitModuleManager {
 		}
 	}
 
+	/**
+	 * 
+	 * 
+	 * @param parentgit
+	 * @param consideredBranch
+	 * @throws GitAPIException
+	 * @throws GitSyncError
+	 * @throws IOException
+	 * @throws ConfigInvalidException
+	 */
 	public void updateBranchesForModules(Git parentgit, String consideredBranch)
 			throws GitAPIException, GitSyncError, IOException, ConfigInvalidException {
 		logger.info("updateBranchesForModules branch = " + consideredBranch);
@@ -461,7 +489,6 @@ public class GitModuleManager {
 	 *
 	 * @param errorPrefix The error prefix for any error message
 	 * @param refUpdates  A collection of remote references updates
-	 * @throws Exception
 	 */
 	public static void validateRemoteRefUpdates(String errorPrefix, Collection<RemoteRefUpdate> refUpdates)
 			throws GitSyncError {
