@@ -20,6 +20,14 @@
 		<url>https://github.com/gemoc/git-sync-tools</url>
 		<connection>scm:git:git://github.com/gemoc/git-sync-tools.git</connection>
 	</scm>
+	<developers>
+		<developer>
+			<email>didier.vojtisek@inria.fr</email>
+			<name>Didier Vojtisek</name>
+			<url>https://github.com/dvojtise/</url>
+			<id>dvojtise</id>
+		</developer>
+	</developers>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
