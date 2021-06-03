@@ -35,6 +35,14 @@ jobs:
     - name: Build with Maven
       working-directory: sync-git-submodules-branches
       run: mvn -B package --file pom.xml
+    - name: Echo env
+      working-directory: sync-git-submodules-branches
+      run: |
+        cat $GITHUB_WORKSPACE/settings.xml
+        echo MAVEN_USERNAME = $MAVEN_USERNAME
+      env:
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
     - name: Publish to s01.oss.sonatype.org
       working-directory: sync-git-submodules-branches
       run: mvn deploy -e -s $GITHUB_WORKSPACE/settings.xml
