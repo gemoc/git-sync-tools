@@ -16,6 +16,14 @@
 		<url>https://github.com/gemoc/git-sync-tools/issues</url>
 		<system>GitHub Issues</system>
 	</issueManagement>
+	
+	<licenses>
+		<license>
+			<name>Eclipse Public License - v 2.0</name>
+			<url>https://www.eclipse.org/legal/epl-2.0/</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 	<scm>
 		<url>https://github.com/gemoc/git-sync-tools</url>
 		<connection>scm:git:git://github.com/gemoc/git-sync-tools.git</connection>
