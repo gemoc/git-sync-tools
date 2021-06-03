@@ -37,7 +37,7 @@ jobs:
       run: mvn -B package --file pom.xml
     - name: Publish to s01.oss.sonatype.org
       working-directory: sync-git-submodules-branches
-      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+      run: mvn deploy -X -e -s $GITHUB_WORKSPACE/settings.xml
       env:
         MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
