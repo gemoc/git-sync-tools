@@ -34,12 +34,12 @@ jobs:
     - name: Build with Maven
       working-directory: sync-git-submodules-branches
       run: mvn -B package --file pom.xml
-#    - name: Publish to s01.oss.sonatype.org
-#      working-directory: sync-git-submodules-branches
-#      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
-#      env:
-#        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-#        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+    - name: Publish to s01.oss.sonatype.org
+      working-directory: sync-git-submodules-branches
+      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+      env:
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
     - name: Stage result files
       run: mkdir staging && cp sync-git-submodules-branches/target/*.jar staging
     - name: Upload Artifacts
