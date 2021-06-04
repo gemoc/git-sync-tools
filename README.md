@@ -107,7 +107,7 @@ then configure a CI to either:
 - or configure each of the Repo-x to trigger a build (using for ex webhooks)
 
 
-The root of the Integration-Repo can then contains a CI specific configuration file (Jenkinsfile or .gitlab-ci.yml) to build the entire application with a checkout of all the sources.
+The root of the Integration-Repo can then contains a CI specific configuration file (Jenkinsfile, .gitlab-ci.yml, or github actions) to build the entire application with a checkout of all the sources from all the component repositories.
 
 
 ## Example scenario
