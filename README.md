@@ -143,11 +143,16 @@ The root of the Integration-Repo can then contains a CI specific configuration f
 
 ## Example scenario
 
-From the following repositories,
+From the following repositories:
 ![scenario-step1](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/gemoc/git-sync-tools/master/doc/plantuml/scenario_step1.plantuml)
 
-Applying the tool (if all branches are active in the submodules) will result in the following repositories.
+Applying the tool (if all *feature* branches are active in the component repositories) will result in the following repositories.
+It creates 3 branches in the *Integration* repository where all submodules points either to the cooresponding branch or the *main* branch of the component repository.
+
+It also takes care to point to the head of the branches.
+
 
 ![scenario-step2](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/gemoc/git-sync-tools/master/doc/plantuml/scenario_step2.plantuml)
 
 
+If all branches with a given name are removed from the component repositories (or becomes inactive afte some time) the tool will remove the corresponding branch from the integration repository.
