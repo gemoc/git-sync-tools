@@ -1,0 +1,70 @@
+@startuml
+skinparam database<<submodule>> {
+  backgroundColor aliceblue
+  borderColor blue
+}
+skinparam frame<<main>> {
+  backgroundColor aliceblue
+  borderColor blue
+  borderThickness 2
+}
+
+database "Integration Repository" as Integration {
+    frame "main branch" as integration_main    #line.bold;line:red {
+        database  "ComponentA" as Integration_main_ComponentA<<submodule>>  #line.dotted
+        database  "ComponentB" as Integration_main_ComponentB<<submodule>>  #line.dotted
+        database  "ComponentC" as Integration_main_ComponentC<<submodule>>  #line.dotted
+        database  "ComponentD" as Integration_main_ComponentD<<submodule>>  #line.dotted
+        
+        Integration_main_ComponentA -[hidden]-> Integration_main_ComponentB
+        Integration_main_ComponentB -[hidden]-> Integration_main_ComponentC
+        Integration_main_ComponentC -[hidden]-> Integration_main_ComponentD
+    }
+}
+
+Integration_main_ComponentA -> ComponentA_main
+Integration_main_ComponentB -> ComponentB_main
+Integration_main_ComponentC -> ComponentC_main
+Integration_main_ComponentD -> ComponentD_main
+rectangle "Component repositories" as components #line.dashed {
+database ComponentA {
+    frame "main branch" as ComponentA_main  #line.bold;line:blue {
+    }
+    frame "feature1 branch" as ComponentA_feature1 {
+    }
+    frame "feature3 branch" as ComponentA_feature3 {
+    }
+    ComponentA_main -[hidden]-> ComponentA_feature1
+    ComponentA_feature1 -[hidden]-> ComponentA_feature3
+}
+
+database ComponentB {
+    frame "main branch" as ComponentB_main   #line.bold;line:blue {
+    }
+    frame "feature1 branch" as ComponentB_feature1 {
+    }
+    frame "feature2 branch" as ComponentB_feature2 {
+    }
+    ComponentB_main -[hidden]-> ComponentB_feature1
+    ComponentB_feature1 -[hidden]-> ComponentB_feature2
+}
+
+database ComponentC {
+    frame "main branch" as ComponentC_main   #line.bold;line:blue {
+    }
+    frame "feature1 branch" as ComponentC_feature1 {
+    }
+    ComponentC_main -[hidden]-> ComponentC_feature1
+}
+database ComponentD {
+    frame "main branch" as ComponentD_main   #line.bold;line:blue {
+    }
+}
+
+
+ComponentA -[hidden]- ComponentB
+ComponentB -[hidden]- ComponentC
+ComponentC -[hidden]- ComponentD
+}
+
+@enduml
