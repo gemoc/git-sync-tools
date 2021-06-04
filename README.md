@@ -1,13 +1,15 @@
-# git-sync
+# git-sync-tools
 Scripts used to help to synchronize git repositories when following some naming convention on branches
+
+The main tools `sync-git-submodules-branches` allows to automate the managment of branches of a git repository thats integrates the content of several other repositories via submodules.
 
 
 ## Rationnale
 
 In some large projects the code is split in several repositories. 
-The developpers have to aggregate several repositories in  order to build the full aplication and run system tests (typically running user stories).
+The developpers have to aggregate several repositories in  order to build the full aplication and run system or integration tests (.
 
-Technologies like gitlab pipeline or jenkins works fine with multiple git branches only on a single git repository. Thus the system test cannot easily be acheived on the aggregate for each of the development branches.
+Technologies like gitlab pipeline or jenkins works fine with multiple git branches only on a single git repository. Thus the system tests cannot easily be acheived on the aggregate for each of the development branches.
 
 This tools aims to enable CI build (and test) for branches even if distributed accross several repositories.
 
@@ -137,5 +139,15 @@ then configure a CI to either:
 
 
 The root of the Integration-Repo can then contains a CI specific configuration file (Jenkinsfile or .gitlab-ci.yml) to build the entire application with a checkout of all the sources.
+
+
+## Example scenario
+
+From the following repositories,
+![scenario-step1](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/gemoc/git-sync-tools/master/doc/plantuml/scenario_step1.plantuml)
+
+Applying the tool (if all branches are active in the submodules) will result in the following repositories.
+
+![scenario-step2](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/gemoc/git-sync-tools/master/doc/plantuml/scenario_step2.plantuml)
 
 
