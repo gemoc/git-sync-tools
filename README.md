@@ -11,7 +11,9 @@ The developpers have to aggregate several repositories in  order to build the fu
 
 Technologies like gitlab pipeline or jenkins works fine with multiple git branches only on a single git repository. Thus the system tests cannot easily be acheived on the aggregate for each of the development branches.
 
-This tools aims to enable CI build (and test) for branches even if distributed accross several repositories.
+This tools aims to enable CI build (and test) for branches even if the code is distributed accross several repositories.
+
+This makes possible checking that API/framework changes are taken into account by the main components using it.
 
 Typical example:
 
@@ -69,15 +71,16 @@ Add a `pom.xml` in the repository (in a subfolder, eg. "scripts") with a content
   <build>
     <plugins>
       <plugin>
-        <groupId>fr.inria.diverse</groupId>
-        <artifactId>git-sync</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <groupId>org.gemoc.git-sync-tools</groupId>
+        <artifactId>sync-git-submodules-branches-plugin</artifactId>
+        <version>1.0.1T</version>
         <configuration>
         	<parentGitURL>git@github.com:myorganisation/integration-repo.git</parentGitURL> <!-- replace here with the git url of your Integration-Repo --> 
         	<userOrToken>${gituser.name}</userOrToken>
         	<password>${gituser.password}</password>
         	<committerName>${gituser.name}</committerName>
         	<committerEmail>${gituser.email}</committerEmail>
+        	<inactivityThreshold>90</inactivityThreshold> <!-- number of days without commit to consider a branch inactive-->
         </configuration>
         <executions>
           <execution>
@@ -91,40 +94,6 @@ Add a `pom.xml` in the repository (in a subfolder, eg. "scripts") with a content
       </plugin>
     </plugins>
   </build>
-  	<pluginRepositories>
-		<pluginRepository>
-			<id>maven-inria-release</id>
-			<name>maven.inria.fr</name>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</snapshots>
-			<url>http://maven.inria.fr/artifactory/public-release</url>
-			<layout>default</layout>
-		</pluginRepository>
-		<pluginRepository>
-			<id>maven-inria-snapshot</id>
-			<name>maven.inria.fr</name>
-			<releases>
-				<enabled>false</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</snapshots>
-			<url>http://maven.inria.fr/artifactory/public-snapshot</url>
-			<layout>default</layout>
-		</pluginRepository>
-	</pluginRepositories>
 </project>    
 ```
 
