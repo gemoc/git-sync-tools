@@ -38,6 +38,8 @@ The goal of the script is to:
 cd git-sync
 mvn clean install
 ```
+(in case of error with gpg, make sure to enable your local gpg-agent with your personal key. For example using a command such as `echo "test" | gpg --clearsign`) 
+
 
 ![maven workflow](https://github.com/dvojtise/git-sync/actions/workflows/maven.yml/badge.svg)
 
@@ -109,6 +111,8 @@ then configure a CI to either:
 
 The root of the Integration-Repo can then contains a CI specific configuration file (Jenkinsfile, .gitlab-ci.yml, or github actions) to build the entire application with a checkout of all the sources from all the component repositories.
 
+Tips: the integration repository is cloned into the `target` folder of the maven project. Doing a `mvn verify` will try to reuse the existing repository in order to save network bandwidth. 
+In case of trouble, do a `mvn clean verify` to force a clone. 
 
 ## Example scenario
 
