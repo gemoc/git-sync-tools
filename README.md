@@ -112,16 +112,21 @@ The root of the Integration-Repo can then contains a CI specific configuration f
 
 ## Example scenario
 
-From the following repositories:
+From the following repositories where the development  of a feature implies some changes in 3 repositories out ot 4:
 ![scenario-step1](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/gemoc/git-sync-tools/master/doc/plantuml/scenario_step1.plantuml)
 
 Applying the tool (if all *feature* branches are active in the component repositories) will result in the following repositories.
-It creates 3 branches in the *Integration* repository where all submodules points either to the cooresponding branch or the *main* branch of the component repository.
+It creates 1 branches in the *Integration* repository where all submodules points either to the corresponding branch or the *main* branch of the component repository.
 
-It also takes care to point to the head of the branches.
-
+It also takes care to update the submodules to point to the head of all considered branches. 
+The CI is able to build the latest version of these 2 branches (*main* and *feature1*)
 
 ![scenario-step2](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/gemoc/git-sync-tools/master/doc/plantuml/scenario_step2.plantuml)
 
 
-If all branches with a given name are removed from the component repositories (or becomes inactive afte some time) the tool will remove the corresponding branch from the integration repository.
+After some time, the *feature1* branch  becomes inactive (because its content is integrated in *main* or the development is suspended), 
+and 2 new features are developed (each of them implying different repositories)  
+
+The tool removes the *feature1* branch from the integration repository and creates 2 new branches. The CI is able to build the latest version of these 3 branches (*main*, *feature2*, and *feature3*).
+
+![scenario-step3](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/gemoc/git-sync-tools/master/doc/plantuml/scenario_step3.plantuml)

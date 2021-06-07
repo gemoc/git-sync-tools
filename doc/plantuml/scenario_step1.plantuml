@@ -32,10 +32,7 @@ database ComponentA {
     }
     frame "feature1 branch" as ComponentA_feature1 {
     }
-    frame "feature3 branch" as ComponentA_feature3 {
-    }
     ComponentA_main -[hidden]-> ComponentA_feature1
-    ComponentA_feature1 -[hidden]-> ComponentA_feature3
 }
 
 database ComponentB {
@@ -43,10 +40,7 @@ database ComponentB {
     }
     frame "feature1 branch" as ComponentB_feature1 {
     }
-    frame "feature2 branch" as ComponentB_feature2 {
-    }
     ComponentB_main -[hidden]-> ComponentB_feature1
-    ComponentB_feature1 -[hidden]-> ComponentB_feature2
 }
 
 database ComponentC {
