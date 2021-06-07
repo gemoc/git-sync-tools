@@ -1,15 +1,19 @@
-# git-sync
+# git-sync-tools
 Scripts used to help to synchronize git repositories when following some naming convention on branches
+
+The main tools `sync-git-submodules-branches` allows to automate the managment of branches of a git repository thats integrates the content of several other repositories via submodules.
 
 
 ## Rationnale
 
 In some large projects the code is split in several repositories. 
-The developpers have to aggregate several repositories in  order to build the full aplication and run system tests (typically running user stories).
+The developpers have to aggregate several repositories in  order to build the full aplication and run system or integration tests (.
 
-Technologies like gitlab pipeline or jenkins works fine with multiple git branches only on a single git repository. Thus the system test cannot easily be acheived on the aggregate for each of the development branches.
+Technologies like gitlab pipeline or jenkins works fine with multiple git branches only on a single git repository. Thus the system tests cannot easily be acheived on the aggregate for each of the development branches.
 
-This tools aims to enable CI build (and test) for branches even if distributed accross several repositories.
+This tools aims to enable CI build (and test) for branches even if the code is distributed accross several repositories.
+
+This makes possible checking that API/framework changes are taken into account by the main components using it.
 
 Typical example:
 
@@ -67,15 +71,16 @@ Add a `pom.xml` in the repository (in a subfolder, eg. "scripts") with a content
   <build>
     <plugins>
       <plugin>
-        <groupId>fr.inria.diverse</groupId>
-        <artifactId>git-sync</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <groupId>org.gemoc.git-sync-tools</groupId>
+        <artifactId>sync-git-submodules-branches-plugin</artifactId>
+        <version>1.0.1T</version>
         <configuration>
         	<parentGitURL>git@github.com:myorganisation/integration-repo.git</parentGitURL> <!-- replace here with the git url of your Integration-Repo --> 
         	<userOrToken>${gituser.name}</userOrToken>
         	<password>${gituser.password}</password>
         	<committerName>${gituser.name}</committerName>
         	<committerEmail>${gituser.email}</committerEmail>
+        	<inactivityThreshold>90</inactivityThreshold> <!-- number of days without commit to consider a branch inactive-->
         </configuration>
         <executions>
           <execution>
@@ -89,40 +94,6 @@ Add a `pom.xml` in the repository (in a subfolder, eg. "scripts") with a content
       </plugin>
     </plugins>
   </build>
-  	<pluginRepositories>
-		<pluginRepository>
-			<id>maven-inria-release</id>
-			<name>maven.inria.fr</name>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</snapshots>
-			<url>http://maven.inria.fr/artifactory/public-release</url>
-			<layout>default</layout>
-		</pluginRepository>
-		<pluginRepository>
-			<id>maven-inria-snapshot</id>
-			<name>maven.inria.fr</name>
-			<releases>
-				<enabled>false</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</snapshots>
-			<url>http://maven.inria.fr/artifactory/public-snapshot</url>
-			<layout>default</layout>
-		</pluginRepository>
-	</pluginRepositories>
 </project>    
 ```
 
@@ -136,6 +107,21 @@ then configure a CI to either:
 - or configure each of the Repo-x to trigger a build (using for ex webhooks)
 
 
-The root of the Integration-Repo can then contains a CI specific configuration file (Jenkinsfile or .gitlab-ci.yml) to build the entire application with a checkout of all the sources.
+The root of the Integration-Repo can then contains a CI specific configuration file (Jenkinsfile, .gitlab-ci.yml, or github actions) to build the entire application with a checkout of all the sources from all the component repositories.
 
 
+## Example scenario
+
+From the following repositories:
+![scenario-step1](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/gemoc/git-sync-tools/master/doc/plantuml/scenario_step1.plantuml)
+
+Applying the tool (if all *feature* branches are active in the component repositories) will result in the following repositories.
+It creates 3 branches in the *Integration* repository where all submodules points either to the cooresponding branch or the *main* branch of the component repository.
+
+It also takes care to point to the head of the branches.
+
+
+![scenario-step2](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/gemoc/git-sync-tools/master/doc/plantuml/scenario_step2.plantuml)
+
+
+If all branches with a given name are removed from the component repositories (or becomes inactive afte some time) the tool will remove the corresponding branch from the integration repository.
