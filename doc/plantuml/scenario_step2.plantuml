@@ -44,43 +44,9 @@ database "Integration Repository" as Integration {
     Integration_feature1_ComponentC -[bold,#green]> ComponentC_feature1
     Integration_feature1_ComponentD -[bold,#green]> ComponentD_main
     
-    frame "feature2 branch" as integration_feature2  #line:blue  {
-        database  "ComponentA" as Integration_feature2_ComponentA<<submodule>>  #line.dotted
-        database  "ComponentB" as Integration_feature2_ComponentB<<submodule>>  #line.dotted
-        database  "ComponentC" as Integration_feature2_ComponentC<<submodule>>  #line.dotted
-        database  "ComponentD" as Integration_feature2_ComponentD<<submodule>>  #line.dotted
-        
-        
-        'Integration_feature2_ComponentA -[hidden]- Integration_feature2_ComponentB
-        Integration_feature2_ComponentA -[hidden]- Integration_feature2_ComponentC
-        Integration_feature2_ComponentA -[hidden]- Integration_feature2_ComponentD
-    }
     
-    Integration_feature2_ComponentA -[#blue]> ComponentA_main
-    Integration_feature2_ComponentB -[#blue]> ComponentB_feature2
-    Integration_feature2_ComponentC -[#blue]> ComponentC_main
-    Integration_feature2_ComponentD -[#blue]> ComponentD_main
-    
-    frame "feature3 branch" as integration_feature3  #line:orange  {
-        database  "ComponentA" as Integration_feature3_ComponentA<<submodule>>  #line.dotted
-        database  "ComponentB" as Integration_feature3_ComponentB<<submodule>>  #line.dotted
-        database  "ComponentC" as Integration_feature3_ComponentC<<submodule>>  #line.dotted
-        database  "ComponentD" as Integration_feature3_ComponentD<<submodule>>  #line.dotted
-        
-        
-        'Integration_feature3_ComponentA -[hidden]-> Integration_feature3_ComponentB
-        Integration_feature3_ComponentA -[hidden]-> Integration_feature3_ComponentC
-        Integration_feature3_ComponentA -[hidden]-> Integration_feature3_ComponentD
-    }
-    
-    Integration_feature3_ComponentA -[#orange]> ComponentA_feature3
-    Integration_feature3_ComponentB -[#orange]> ComponentB_main
-    Integration_feature3_ComponentC -[#orange]> ComponentC_main
-    Integration_feature3_ComponentD -[#orange]> ComponentD_main
     
     integration_main -[hidden]-- integration_feature1
-    integration_feature1 -[hidden]-- integration_feature2
-    integration_feature2 -[hidden]-- integration_feature3
 }
 
 rectangle "Component repositories" as components #line.dashed {
@@ -89,10 +55,7 @@ database ComponentA {
     }
     frame "feature1 branch" as ComponentA_feature1 {
     }
-    frame "feature3 branch" as ComponentA_feature3 {
-    }
     ComponentA_main -[hidden]-> ComponentA_feature1
-    ComponentA_feature1 -[hidden]-> ComponentA_feature3
 }
 
 database ComponentB {
@@ -100,10 +63,7 @@ database ComponentB {
     }
     frame "feature1 branch" as ComponentB_feature1 {
     }
-    frame "feature2 branch" as ComponentB_feature2 {
-    }
     ComponentB_main -[hidden]- ComponentB_feature1
-    ComponentB_feature1 -[hidden]- ComponentB_feature2
 }
 
 database ComponentC {
@@ -121,7 +81,7 @@ database ComponentD {
 
 ComponentA -[hidden]- ComponentB
 ComponentB -[hidden]-- ComponentC
-ComponentC -[hidden]- ComponentD
+ComponentC -[hidden]-- ComponentD
 }
 
 @enduml
