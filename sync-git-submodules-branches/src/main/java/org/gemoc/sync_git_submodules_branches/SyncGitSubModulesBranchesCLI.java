@@ -59,7 +59,7 @@ public class SyncGitSubModulesBranchesCLI {
 		GitModuleManager gitManager = new GitModuleManager(parentGitURL, outputDirectory.getAbsolutePath(), credProvider,
 				committerName,
 				committerEmail);
-    	gitManager.gitClone();
+    	gitManager.gitUpdateOrClone();
     	//gitManager.listAllBranches();
     	//gitManager.listMasterSubModules();
     	//gitManager.listAllSubmodulesBranches();

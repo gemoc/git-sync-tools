@@ -14,16 +14,24 @@ import java.util.Set;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
+import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.errors.CanceledException;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidConfigurationException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.NoHeadException;
+import org.eclipse.jgit.api.errors.RefNotAdvertisedException;
+import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.SubmoduleConfig.FetchRecurseSubmodulesMode;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileBasedConfig;
@@ -93,6 +101,39 @@ public class GitModuleManager {
 			this.masterBranchName = result.getRepository().getBranch();
 			logger.info("master branch name: " + this.masterBranchName);
 			
+		}
+	}
+	
+	public void gitUpdate() throws IOException, WrongRepositoryStateException, InvalidConfigurationException, InvalidRemoteException, CanceledException, RefNotFoundException, RefNotAdvertisedException, NoHeadException, TransportException, GitAPIException {
+		File localPath = new File(localGitFolder);
+		logger.info("Updating " + localPath + " from " + gitRemoteURL);
+		try (Git result = Git.open(localPath)) {
+			String url = result.getRepository().getConfig().getString("remote", "origin", "url");
+			if(gitRemoteURL.equals(url)) {
+				logger.info("Checkout "+masterBranchName+" branch from existing repository: " + result.getRepository().getDirectory());
+				result.checkout().setName(masterBranchName).call();
+				logger.info("Pulling existing repository: " + result.getRepository().getDirectory());
+				PullResult res = result.pull().setRecurseSubmodules(FetchRecurseSubmodulesMode.YES).call();
+				if(!res.isSuccessful()){
+					logger.error("Failed to pull repository\n Please delete folder "+localGitFolder+" to perform a full clone.");
+					logger.error("fetch result: "+res.getFetchResult().getMessages());
+					logger.error("merge result: "+res.getMergeResult().getMergeStatus());
+					logger.error("rebase result: "+res.getRebaseResult().getStatus());
+					throw new WrongRepositoryStateException("Failed to pull repository");
+				}
+			} else {
+				logger.error("Existing folder doesn't point to the same url ("+url+")\n Please delete folder "+localGitFolder+" to perform a full clone.");
+				throw new InvalidRemoteException("Existing folder doesn't point to the same url ("+url+") Please delete this folder to perform a full clone.");
+			}
+		}
+	}
+	
+	public void gitUpdateOrClone() throws WrongRepositoryStateException, InvalidConfigurationException, InvalidRemoteException, CanceledException, RefNotFoundException, RefNotAdvertisedException, NoHeadException, TransportException, IOException, GitAPIException {
+		File localPath = new File(localGitFolder);
+		if(localPath.exists() && localPath.isDirectory()) {
+			gitUpdate();
+		} else {
+			gitClone();
 		}
 	}
 
@@ -384,7 +425,7 @@ public class GitModuleManager {
 				Repository submoduleRepository = walk.getRepository();
 				try (Git submodulegit = Git.wrap(submoduleRepository)) {
 					// logger.info("remote branches in submodule "+walk.getModuleName()+":");
-					String trackedBranchName = "master";
+					String trackedBranchName = masterBranchName;
 					Ref trackedBranchRef = null;
 					List<Ref> branches = submodulegit.branchList().setListMode(ListMode.REMOTE).call();
 					for (Ref ref : branches) {

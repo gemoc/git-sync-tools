@@ -86,7 +86,7 @@ public class SyncGitSubmodulesBranchesMojo
 				committerName,
 				committerEmail);
     	try {
-			gitManager.gitClone();
+			gitManager.gitUpdateOrClone();
 			gitManager.listSubModules();
 	    	Set<String> relevantBranches = gitManager.collectAllSubmodulesActiveRemoteBranches(inactivityThreshold);
 	    	gitManager.deleteBranchesNotIn(relevantBranches);
