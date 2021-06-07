@@ -72,7 +72,7 @@ rectangle "Component repositories" as components #line.dashed {
 	database ComponentA {
 	    frame "main branch" as ComponentA_main  #line.bold;line:blue {
 	    }
-	    frame "feature1 branch" as ComponentA_feature1  {
+	    frame "feature1 branch" as ComponentA_feature1 #line.dashed {
 	    }
 	    frame "feature3 branch" as ComponentA_feature3 {
 	    }
@@ -82,7 +82,7 @@ rectangle "Component repositories" as components #line.dashed {
 	database ComponentB {
 	    frame "main branch" as ComponentB_main   #line.bold;line:blue {
 	    }
-	    frame "feature1 branch" as ComponentB_feature1 {
+	    frame "feature1 branch" as ComponentB_feature1 #line.dashed {
 	    }
 	    frame "feature2 branch" as ComponentB_feature2 {
 	    }
@@ -96,7 +96,7 @@ rectangle "Component repositories" as components #line.dashed {
 	database ComponentC {
 	    frame "main branch" as ComponentC_main   #line.bold;line:blue {
 	    }
-	    frame "feature1 branch" as ComponentC_feature1 {
+	    frame "feature1 branch" as ComponentC_feature1 #line.dashed {
 	    }
 	    ComponentC_main -[hidden]-> ComponentC_feature1
 	}
