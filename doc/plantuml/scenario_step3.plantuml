@@ -59,11 +59,11 @@ database "Integration Repository" as Integration {
     }
     
     Integration_feature3_ComponentA -[#orange]> ComponentA_feature3
-    Integration_feature3_ComponentB -[#orange]> ComponentB_main
+    Integration_feature3_ComponentB -[#orange]> ComponentB_feature3
     Integration_feature3_ComponentC -[#orange]> ComponentC_main
     Integration_feature3_ComponentD -[#orange]> ComponentD_main
     
-    integration_main -[hidden]----- integration_feature2
+    integration_main -[hidden]--- integration_feature2
     integration_feature2 -[hidden]--- integration_feature3
 }
 
@@ -72,7 +72,7 @@ rectangle "Component repositories" as components #line.dashed {
 	database ComponentA {
 	    frame "main branch" as ComponentA_main  #line.bold;line:blue {
 	    }
-	    frame "feature1 branch" as ComponentA_feature1 {
+	    frame "feature1 branch" as ComponentA_feature1  {
 	    }
 	    frame "feature3 branch" as ComponentA_feature3 {
 	    }
@@ -86,8 +86,11 @@ rectangle "Component repositories" as components #line.dashed {
 	    }
 	    frame "feature2 branch" as ComponentB_feature2 {
 	    }
+	    frame "feature3 branch" as ComponentB_feature3 {
+	    }
 	    ComponentB_main -[hidden]- ComponentB_feature1
 	    ComponentB_feature1 -[hidden]- ComponentB_feature2
+	    ComponentB_feature2 -[hidden]- ComponentB_feature3
 	}
 	
 	database ComponentC {
@@ -109,8 +112,9 @@ rectangle "Component repositories" as components #line.dashed {
 	
 	
 	ComponentA -[hidden]- ComponentB
-	ComponentB -[hidden]-- ComponentC
-	ComponentC -[hidden]- ComponentD
+	ComponentB -[hidden]- ComponentC
+	ComponentC -[hidden]-- ComponentD
+	ComponentA -[hidden]--- note_feature1
 }
 
 @enduml
