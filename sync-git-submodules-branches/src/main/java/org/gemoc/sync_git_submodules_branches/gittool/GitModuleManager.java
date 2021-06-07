@@ -50,7 +50,7 @@ public class GitModuleManager {
 	String localGitFolder;
 	CredentialsProvider credentialProvider;
 	String masterBranchName = "master";
-	PersonIdent committer = null;
+	PersonIdent defaultCommitter = null;
 
 
 	/**
@@ -70,7 +70,7 @@ public class GitModuleManager {
 		this.localGitFolder = localGitFolder;
 		this.credentialProvider = credentialProvider;
 		if(!(committerName== null || committerName.isEmpty()) && ! (committerEmail == null || committerEmail.isEmpty())) {
-			this.committer = new PersonIdent(committerName, committerEmail);
+			this.defaultCommitter = new PersonIdent(committerName, committerEmail);
 		}
 	}
 
@@ -249,7 +249,7 @@ public class GitModuleManager {
 					if (ref.getName().startsWith("refs/remotes")) {
 						String branchName = ref.getName().substring(ref.getName().lastIndexOf("/") + 1);
 						if (!relevantBranches.contains(branchName) && !branchName.equals(masterBranchName)) {
-							logger.info("\tdeleting branch " + ref.getName() + "  " + ref);
+							logger.info("Pushing deletion of branch " + ref.getName() );
 							// delete locally
 							parentgit.branchDelete().setBranchNames(ref.getName()).setForce(true).call();
 							// delete remotely too
@@ -259,8 +259,11 @@ public class GitModuleManager {
 									.setRemote("origin")
 									.setCredentialsProvider(credentialProvider).call();
 							for (PushResult pushRes : res) {
-								logger.info(
-										pushRes + " ; " + pushRes.getMessages() + " ; " + pushRes.getRemoteUpdates());
+								for (RemoteRefUpdate refUpdate : pushRes.getRemoteUpdates()) {
+									if (refUpdate.getStatus() != RemoteRefUpdate.Status.OK) {
+										logger.error("\t\tFailed to push deletion of "+ref.getName()+ " : " + refUpdate.getMessage() + " ; " + pushRes.getRemoteUpdates());
+									}
+								}
 								validateRemoteRefUpdates("del remote branch", pushRes.getRemoteUpdates());
 							}
 						}
@@ -317,13 +320,24 @@ public class GitModuleManager {
 		// create local branch
 		parentgit.branchCreate().setName(missingParentBranch).call();
 
+		logger.info("Pushing new branch "+missingParentBranch+"...");
 		// push branch to remote
 		Iterable<PushResult> res = parentgit.push().setRemote("origin")
 				.setRefSpecs(new RefSpec(missingParentBranch + ":" + missingParentBranch))
 				.setCredentialsProvider(credentialProvider).call();
 
 		for (PushResult pushRes : res) {
-			logger.info(pushRes + " ; " + pushRes.getMessages() + " ; " + pushRes.getRemoteUpdates());
+			//logger.info(pushRes + " ; " + pushRes.getMessages() + " ; " + pushRes.getRemoteUpdates());
+			for (RemoteRefUpdate refUpdate : pushRes.getRemoteUpdates()) {
+				if (refUpdate.getStatus() != RemoteRefUpdate.Status.OK) {
+					logger.error("\t\tFailed to push new branch "+missingParentBranch+ " : " + refUpdate.getMessage() + " ; " + pushRes.getRemoteUpdates());
+				} else {
+//					// some msg from the remote git repo
+//					if(pushRes.getMessages() !=  null && ! pushRes.getMessages().isEmpty()) {
+//						logger.info(pushRes.getMessages());
+//					}
+				}
+			}
 			validateRemoteRefUpdates("push new remote branch", pushRes.getRemoteUpdates());
 		}
 	}
@@ -370,28 +384,34 @@ public class GitModuleManager {
 				Repository submoduleRepository = walk.getRepository();
 				try (Git submodulegit = Git.wrap(submoduleRepository)) {
 					// logger.info("remote branches in submodule "+walk.getModuleName()+":");
-					String trackedBranch = "master";
-					List<Ref> call = submodulegit.branchList().setListMode(ListMode.REMOTE).call();
-					for (Ref ref : call) {
+					String trackedBranchName = "master";
+					Ref trackedBranchRef = null;
+					List<Ref> branches = submodulegit.branchList().setListMode(ListMode.REMOTE).call();
+					for (Ref ref : branches) {
 						if (ref.getName().startsWith("refs/remotes")) {
 							String branchName = ref.getName().substring(ref.getName().lastIndexOf("/") + 1);
 							if (branchName.equals(consideredBranch)) {
-								trackedBranch = consideredBranch;
+								trackedBranchName = consideredBranch;
+								trackedBranchRef = ref;
 								break;
+							}
+							if(trackedBranchRef == null && branchName.equals(trackedBranchName)) {
+								// use the default branch is necessary
+								trackedBranchRef = ref;
 							}
 						}
 					}
-					logger.info(String.format("  tracking module %1$-32s on branch %s", walk.getModuleName(), trackedBranch));
+					logger.info(String.format("  tracking module %-32s on branch "+trackedBranchName, walk.getModuleName()));
 						
 					// Make sure the parent repo knows that its submodule now tracks a branch:
 					FileBasedConfig modulesConfig = new FileBasedConfig(new File(
 							parentgit.getRepository().getWorkTree(), Constants.DOT_GIT_MODULES), parentgit.getRepository().getFS());
 					modulesConfig.load();
 					modulesConfig.setString(ConfigConstants.CONFIG_SUBMODULE_SECTION, walk.getModulesPath(),
-							ConfigConstants.CONFIG_BRANCH_SECTION, trackedBranch);
+							ConfigConstants.CONFIG_BRANCH_SECTION, trackedBranchName);
 					modulesConfig.save();
 					// Make sure your submodule is actually at the latest of that branch:
-					checkoutBranch(submodulegit, trackedBranch);
+					checkoutBranch(submodulegit, trackedBranchName);
 					// record the new state of your submodule in your parent repo:
 					logger.debug("\t\tgit add " + walk.getModulesPath());
 					parentgit.add()
@@ -416,7 +436,23 @@ public class GitModuleManager {
 		                logger.debug("\t\tUntrackedFolders: " + status.getUntrackedFolders());
 					}
 					if(status.getAdded().size() + status.getChanged().size() +status.getRemoved().size() > 0) {
-						String msg = "Updating submodule "+walk.getModuleName()+" to track head of branch "+trackedBranch;
+						String msg;
+						PersonIdent committer;
+						if(trackedBranchRef != null) {
+							RevWalk walkSubModuleGit = new RevWalk(submodulegit.getRepository());
+							RevCommit latestCommit = walkSubModuleGit.parseCommit(trackedBranchRef.getObjectId());
+							//logger.info(String.format("\t\t%s %s", latestCommit.getAuthorIdent().getEmailAddress(), latestCommit.getShortMessage()));
+							msg = String.format("[%s#%s] %s\n\n%s",
+									walk.getModuleName(),
+									trackedBranchName,
+									latestCommit.getShortMessage(),
+									"Updating submodule "+walk.getModuleName()+" to track head of branch "+trackedBranchName
+									);
+							committer = latestCommit.getAuthorIdent();
+						} else {
+							msg = "Updating submodule "+walk.getModuleName()+" to track head of branch "+trackedBranchName;
+							committer = defaultCommitter;
+						}
 						logger.debug("\t\tgit commit -m \""+msg+"\"");
 						parentgit.commit()
 							.setMessage(msg)
