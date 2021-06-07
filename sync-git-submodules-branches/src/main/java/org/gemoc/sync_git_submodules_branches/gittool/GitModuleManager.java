@@ -2,6 +2,7 @@ package org.gemoc.sync_git_submodules_branches.gittool;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Date;
@@ -177,10 +178,11 @@ public class GitModuleManager {
 	public Set<String> collectAllSubmodulesActiveRemoteBranches(int inactivityThreshold) throws IOException, GitAPIException {
 		Set<String> remoteBranchesNames = new HashSet<String>();
 		FileRepositoryBuilder builder = new FileRepositoryBuilder();
+
 		
-		//Date now = new Date();
+		SimpleDateFormat shortDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		ZonedDateTime now = ZonedDateTime.now();
-		ZonedDateTime inactivityThresholdDate = now.plusDays(- inactivityThreshold);
+		ZonedDateTime inactivityThresholdDate = now.plusDays(-inactivityThreshold);
 		boolean useInactivityThreshold = inactivityThreshold >= 0; 
 
 		try (Repository parentRepository = builder.setMustExist(true).setGitDir(new File(localGitFolder + "/.git"))
@@ -197,22 +199,24 @@ public class GitModuleManager {
 						for (Ref branch : branches) {
 							if (branch.getName().startsWith("refs/remotes")) {
 								String branchName = branch.getName().substring(branch.getName().lastIndexOf("/") + 1);
-								//logger.info("\t" + branchName);
 								
 								// find branch age
 								RevWalk walkSubModuleGit = new RevWalk(submodulegit.getRepository());
 								RevCommit latestCommit = walkSubModuleGit.parseCommit(branch.getObjectId());
 								
-								
 								//RevCommit latestCommit = submodulegit.log().setMaxCount(1).call().iterator().next();
-								Date latestCommitDate =latestCommit.getAuthorIdent().getWhen();
-								if(useInactivityThreshold) {
-									if(latestCommitDate.toInstant().isBefore(inactivityThresholdDate.toInstant())) {
-										logger.info("\t" + branchName +" is INACTIVE since "+latestCommitDate.toString());
-									} else {
-										logger.info("\t" + branchName +" is active ("+latestCommitDate.toString()+latestCommit.getShortMessage()+")");
+								Date latestCommitDate = latestCommit.getAuthorIdent().getWhen();
+								if (useInactivityThreshold) {
+									boolean isActiveBranch = !latestCommitDate.toInstant().isBefore(inactivityThresholdDate.toInstant());
+									if(isActiveBranch) {
 										remoteBranchesNames.add(branchName);
 									}
+									logger.info(String.format("\t%-32s is %8s since %s \t", branchName,
+											isActiveBranch
+													? "ACTIVE"
+													: "INACTIVE",
+											shortDateFormat.format(latestCommitDate),
+											latestCommit.getShortMessage()));
 								} else {
 									logger.info("\t" + branchName);
 									remoteBranchesNames.add(branchName);
@@ -377,7 +381,7 @@ public class GitModuleManager {
 							}
 						}
 					}
-					logger.info(String.format("  tracking module %1$-25s on branch ", walk.getModuleName(), trackedBranch));
+					logger.info(String.format("  tracking module %1$-32s on branch %s", walk.getModuleName(), trackedBranch));
 						
 					// Make sure the parent repo knows that its submodule now tracks a branch:
 					FileBasedConfig modulesConfig = new FileBasedConfig(new File(

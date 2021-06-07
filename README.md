@@ -73,7 +73,7 @@ Add a `pom.xml` in the repository (in a subfolder, eg. "scripts") with a content
       <plugin>
         <groupId>org.gemoc.git-sync-tools</groupId>
         <artifactId>sync-git-submodules-branches-plugin</artifactId>
-        <version>1.0.1T</version>
+        <version>1.0.1</version>
         <configuration>
         	<parentGitURL>git@github.com:myorganisation/integration-repo.git</parentGitURL> <!-- replace here with the git url of your Integration-Repo --> 
         	<userOrToken>${gituser.name}</userOrToken>
