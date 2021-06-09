@@ -135,16 +135,14 @@ The tool removes the *feature1* branch from the integration repository and creat
 
 ![scenario-step3](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/gemoc/git-sync-tools/master/doc/plantuml/scenario_step3.plantuml)
 
+## GEMOC use case
 
-
-### The GEMOC use case
-
-In this use case, the *sync-git-submodules-branches* tool is in 2 places in order to have multibranch build pipeline enabled for both the official maintainers (ie. Eclipse commiters)
+In this use case, the *sync-git-submodules-branches* tool is used in 2 places in order to have multibranch build pipeline enabled for both the official maintainers (ie. Eclipse commiters)
 and the GEMOC community. Thus enabling circle of trust where community can still enjoy the use of continuous integration for their own development branches (*prototype_feature*) 
 even if they aren't part of the eclipse organization. And Eclipse organization member can use the CI on their own branches (*official_feature*) (for example for validating pull requests 
 coming from user not using a CI) 
 
-![scenario-step3](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/gemoc/git-sync-tools/master/doc/plantuml/scenario_step3.plantuml)
+![scenario-step3](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/gemoc/git-sync-tools/master/doc/plantuml/gemoc-usecase.plantuml)
 
 
 
