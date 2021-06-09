@@ -1,0 +1,122 @@
+@startuml
+skinparam database<<submodule>> {
+  backgroundColor aliceblue
+  borderColor blue
+}
+
+rectangle "Eclipse organization" as eclipse_org #line.dashed {
+
+    control "Multibranch build pipeline" as pipelineBuildEclipse  #line:blue
+
+    pipelineBuildEclipse <-- EIntegration #blue
+    database Integration as EIntegration{
+        frame "main branch" as EIntegration_main  #line.bold;line:blue {
+            database  "ComponentA" as EIntegration_main_ComponentA<<submodule>>  #line.dotted
+            database  "ComponentB" as EIntegration_main_ComponentB<<submodule>>  #line.dotted
+        }
+        frame "official_feature branch" as EIntegration_official_feature  {        
+            database  "ComponentA" as EIntegration_feature_ComponentA<<submodule>>  #line.dotted
+            database  "ComponentB" as EIntegration_feature_ComponentB<<submodule>>  #line.dotted
+        }
+    }
+    cloud {
+    database ComponentA as EComponentA  {
+        frame "main branch" as EComponentA_main  #line.bold;line:blue {
+        }
+        frame "official_feature branch" as EComponentA_official_feature  {
+        }
+    }
+    database ComponentB as EComponentB  {
+        frame "main branch" as EComponentB_main  #line.bold;line:blue {
+        }
+    }
+    }
+    EIntegration -[hidden]- EComponentA
+    
+    control "sync-git-submodules-branches-plugin" as syncSubmodulesEclipse 
+
+    EIntegration <-- syncSubmodulesEclipse
+    syncSubmodulesEclipse <-- EComponentA
+    syncSubmodulesEclipse <-- EComponentB
+}
+
+
+
+
+
+artifact "Pull Request" as pr
+EComponentA_main <- pr
+EComponentB_main <- pr
+
+note "Components repositories main branches\nonly accept Pull Requests" as N1
+N1 -- pr
+
+note "Possible source of Pull Requests" as N2
+EComponentA_official_feature .. N2
+GComponentA_prototype_feature .. N2
+GComponentB_prototype_feature ... N2
+
+N2 -> pr : PR
+
+note "accessible to Eclipse maintainers only" as N3
+EComponentA_official_feature .. N3
+
+
+rectangle "GEMOC organization" as gemoc_org #line.dashed {
+    
+    control "Multibranch build pipeline" as pipelineBuildGemoc  #line:blue
+    pipelineBuildGemoc <-- GIntegration #blue
+    database Integration as GIntegration{
+        frame "main branch" as GIntegration_main  #line.bold;line:blue {
+            database  "ComponentA" as GIntegration_main_ComponentA<<submodule>>  #line.dotted
+            database  "ComponentB" as GIntegration_main_ComponentB<<submodule>>  #line.dotted
+        }
+        frame "prototype_feature branch" as GIntegration_prototype_feature  {
+            database  "ComponentA" as GIntegration_feature_ComponentA<<submodule>>  #line.dotted
+            database  "ComponentB" as GIntegration_feature_ComponentB<<submodule>>  #line.dotted
+        }
+    }
+    cloud {
+    database ComponentA as GComponentA {
+        frame "main branch" as GComponentA_main  #line.bold;line:blue {
+        }
+        frame "prototype_feature branch" as GComponentA_prototype_feature  {
+        }
+    }
+    database ComponentB as GComponentB {
+        frame "main branch" as GComponentB_main  #line.bold;line:blue {
+        }
+        frame "prototype_feature branch" as GComponentB_prototype_feature  {
+        }
+    }
+    }
+    GIntegration -[hidden]- GComponentA
+    
+    control "sync-git-submodules-branches-plugin" as syncSubmodulesGemoc
+
+    GIntegration <-- syncSubmodulesGemoc  
+    syncSubmodulesGemoc <-- GComponentA
+    syncSubmodulesGemoc <-- GComponentB
+    
+    
+    control "Sync master branches\nfrom Eclipse components\nto Gemoc components" as syncMaster #line:green
+
+    EComponentA_main --> syncMaster #green
+    EComponentB_main -> syncMaster #green
+    syncMaster --> GComponentA_main #green
+    syncMaster --> GComponentB_main #green
+}
+
+note "accessible to Gemoc community" as N4
+GComponentA_prototype_feature .. N4
+GComponentB_prototype_feature .. N4
+
+note "Direct commit not allowed" as N5
+GComponentA_main .. N5
+GComponentB_main .. N5
+
+
+eclipse_org -[hidden]-- gemoc_org
+
+
+@enduml
