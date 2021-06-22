@@ -41,7 +41,7 @@ mvn clean install
 (in case of error with gpg, make sure to enable your local gpg-agent with your personal key. For example using a command such as `echo "test" | gpg --clearsign`) 
 
 
-![maven workflow](https://github.com/dvojtise/git-sync/actions/workflows/maven.yml/badge.svg)
+![maven workflow](https://github.com/gemoc/git-sync-tools/actions/workflows/maven.yml/badge.svg)
 
 
 ## Usage
