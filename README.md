@@ -3,11 +3,19 @@ Scripts used to help to synchronize git repositories when following some naming 
 
 The main tools `sync-git-submodules-branches` allows to automate the managment of branches of a git repository thats integrates the content of several other repositories via submodules.
 
+## Abstract
+Modern development of complex software are often split into multiple git repositories.
+Best practice in team development recommand to use branches in order to prepare contribution and validate them before being merged. However using these practices
+together isn't trivial when changes impact more than one repository (CI servers can easily be configured to build the integration of all repositories on a single branch or building all branches of a single repository but not tall branches of all repositories)
+The tool sync-git-submodules-branches-plugin  implifies the developer tasks by automating a simple name-based workflow to
+allow running integration tests of every branches on a continuous integration server.
+This workflow enables integration validation before merging the changes.
+
 
 ## Rationnale
 
 In some large projects the code is split in several repositories. 
-The developpers have to aggregate several repositories in  order to build the full aplication and run system or integration tests (.
+The developpers have to aggregate several repositories in  order to build the full aplication and run system or integration tests.
 
 Technologies like gitlab pipeline or jenkins works fine with multiple git branches only on a single git repository. Thus the system tests cannot easily be acheived on the aggregate for each of the development branches.
 
