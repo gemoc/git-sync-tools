@@ -40,7 +40,7 @@ public class SyncGitSubModulesBranchesCLI {
 		String directoryPath = cmd.hasOption("f") ? cmd.getOptionValue("f") : "";
 		String committerName = cmd.hasOption("c") ? cmd.getOptionValue("c") : "";
 		String committerEmail = cmd.hasOption("e") ? cmd.getOptionValue("e") : "";
-		String inactivityThreshold = cmd.hasOption("i") ? cmd.getOptionValue("i") : "";
+		String inactivityThreshold = cmd.hasOption("i") ? cmd.getOptionValue("i") : "90";
 		
 		if(parentGitURL.isEmpty()) {
 			HelpFormatter formatter = new HelpFormatter();
