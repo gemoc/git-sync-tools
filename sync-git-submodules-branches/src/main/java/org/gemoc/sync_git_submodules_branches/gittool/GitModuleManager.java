@@ -238,9 +238,8 @@ public class GitModuleManager {
 						logger.info("remote branches in submodule " + walk.getModuleName() + ":");
 						List<Ref> branches = submodulegit.branchList().setListMode(ListMode.REMOTE).call();
 						for (Ref branch : branches) {
-							if (branch.getName().startsWith("refs/remotes")) {
-								String branchName = branch.getName().substring(branch.getName().lastIndexOf("/") + 1);
-								
+							if (branch.getName().startsWith("refs/remotes/origin/")) {
+								String branchName = branch.getName().substring("refs/remotes/origin/".length());
 								// find branch age
 								RevWalk walkSubModuleGit = new RevWalk(submodulegit.getRepository());
 								RevCommit latestCommit = walkSubModuleGit.parseCommit(branch.getObjectId());
