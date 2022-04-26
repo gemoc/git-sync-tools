@@ -286,8 +286,8 @@ public class GitModuleManager {
 			try (Git parentgit = new Git(parentRepository)) {
 				List<Ref> call = parentgit.branchList().setListMode(ListMode.REMOTE).call();
 				for (Ref ref : call) {
-					if (ref.getName().startsWith("refs/remotes")) {
-						String branchName = ref.getName().substring(ref.getName().lastIndexOf("/") + 1);
+					if (ref.getName().startsWith("refs/remotes/origin/")) {
+						String branchName = ref.getName().substring("refs/remotes/origin/".length());
 						if (!relevantBranches.contains(branchName) && !branchName.equals(masterBranchName)) {
 							logger.info("Pushing deletion of branch " + ref.getName() );
 							// delete locally
@@ -326,8 +326,8 @@ public class GitModuleManager {
 			try (Git parentgit = new Git(parentRepository)) {
 				List<Ref> call = parentgit.branchList().setListMode(ListMode.REMOTE).call();
 				for (Ref ref : call) {
-					if (ref.getName().startsWith("refs/remotes")) {
-						String branchName = ref.getName().substring(ref.getName().lastIndexOf("/") + 1);
+					if (ref.getName().startsWith("refs/remotes/origin/")) {
+						String branchName = ref.getName().substring("refs/remotes/origin/".length());
 						parentBranches.add(branchName);
 					}
 				}
@@ -392,9 +392,9 @@ public class GitModuleManager {
 			try (Git parentgit = new Git(parentRepository)) {
 				List<Ref> call = parentgit.branchList().setListMode(ListMode.REMOTE).call();
 				for (Ref ref : call) {
-					if (ref.getName().startsWith("refs/remotes")) {
+					if (ref.getName().startsWith("refs/remotes/origin/")) {
 						updateBranchesForModules(parentgit,
-								ref.getName().substring(ref.getName().lastIndexOf("/") + 1));
+								ref.getName().substring("refs/remotes/origin/".length()));
 					}
 				}
 			}
@@ -428,8 +428,8 @@ public class GitModuleManager {
 					Ref trackedBranchRef = null;
 					List<Ref> branches = submodulegit.branchList().setListMode(ListMode.REMOTE).call();
 					for (Ref ref : branches) {
-						if (ref.getName().startsWith("refs/remotes")) {
-							String branchName = ref.getName().substring(ref.getName().lastIndexOf("/") + 1);
+						if (ref.getName().startsWith("refs/remotes/origin/")) {
+							String branchName = ref.getName().substring("refs/remotes/origin/".length());
 							if (branchName.equals(consideredBranch)) {
 								trackedBranchName = consideredBranch;
 								trackedBranchRef = ref;
@@ -548,8 +548,8 @@ public class GitModuleManager {
 		// else look for a remote branch with this name
 		List<Ref> call = git.branchList().setListMode(ListMode.REMOTE).call();
 		for (Ref ref : call) {
-			if (ref.getName().startsWith("refs/remotes")) {
-				String remotebranchName = ref.getName().substring(ref.getName().lastIndexOf("/") + 1);
+			if (ref.getName().startsWith("refs/remotes/origin/")) {
+				String remotebranchName = ref.getName().substring("refs/remotes/origin/".length());
 				if (branchName.equals(remotebranchName)) {
 					git.checkout()
 						.setName(branchName)
