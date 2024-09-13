@@ -522,7 +522,7 @@ public class GitModuleManager {
 							logger.info("\t\t[DRYRUN] git commit -m \""+msg+"\"");
 						}
 					}
-					reportBuffer.append(String.format("| %-32s | %s %-16s |\n", walk.getModuleName(),branchModifier, trackedBranchName));
+					reportBuffer.append(String.format("| %-32s |  %-16s %s |\n", walk.getModuleName(), trackedBranchName, branchModifier));
 				}
 			}
 			
