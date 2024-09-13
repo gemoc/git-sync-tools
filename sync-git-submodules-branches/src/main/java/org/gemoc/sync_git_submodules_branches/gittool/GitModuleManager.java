@@ -382,7 +382,15 @@ public class GitModuleManager {
 		}
 	}
 
-	public void updateAllBranchesModules() throws IOException, GitAPIException, GitSyncError, ConfigInvalidException {
+	/**
+	 * 
+	 * @param dryRun report only, do not perform changes
+	 * @throws IOException
+	 * @throws GitAPIException
+	 * @throws GitSyncError
+	 * @throws ConfigInvalidException
+	 */
+	public void updateAllBranchesModules(StringBuffer reportBuffer, boolean dryRun) throws IOException, GitAPIException, GitSyncError, ConfigInvalidException {
 		FileRepositoryBuilder builder = new FileRepositoryBuilder();
 
 		try (Repository parentRepository = builder.setMustExist(true).setGitDir(new File(localGitFolder + "/.git"))
@@ -394,12 +402,15 @@ public class GitModuleManager {
 				for (Ref ref : call) {
 					if (ref.getName().startsWith("refs/remotes/origin/")) {
 						updateBranchesForModules(parentgit,
-								ref.getName().substring("refs/remotes/origin/".length()));
+								ref.getName().substring("refs/remotes/origin/".length()),
+								reportBuffer,
+								dryRun);
 					}
 				}
 			}
 		}
 	}
+	
 
 	/**
 	 * 
@@ -411,9 +422,13 @@ public class GitModuleManager {
 	 * @throws IOException
 	 * @throws ConfigInvalidException
 	 */
-	public void updateBranchesForModules(Git parentgit, String consideredBranch)
+	public void updateBranchesForModules(Git parentgit, String consideredBranch, StringBuffer reportBuffer, boolean dryRun)
 			throws GitAPIException, GitSyncError, IOException, ConfigInvalidException {
 		logger.info("updateBranchesForModules branch = " + consideredBranch);
+		reportBuffer.append(String.format("**Branch %s**\n",  consideredBranch));
+		reportBuffer.append("\n"
+				+ "| Module                           | Branch           |\n"
+				+ "|:----------                       |:----------       |\n");
 		// switch parentGit to branch
 		checkoutBranch(parentgit, consideredBranch);
 		
@@ -442,6 +457,7 @@ public class GitModuleManager {
 						}
 					}
 					logger.info(String.format("  tracking module %-32s on branch "+trackedBranchName, walk.getModuleName()));
+					
 						
 					// Make sure the parent repo knows that its submodule now tracks a branch:
 					FileBasedConfig modulesConfig = new FileBasedConfig(new File(
@@ -475,6 +491,7 @@ public class GitModuleManager {
 		                logger.debug("\t\tUntracked: " + status.getUntracked());
 		                logger.debug("\t\tUntrackedFolders: " + status.getUntrackedFolders());
 					}
+					String branchModifier = "";
 					if(status.getAdded().size() + status.getChanged().size() +status.getRemoved().size() > 0) {
 						String msg;
 						PersonIdent committer;
@@ -493,13 +510,19 @@ public class GitModuleManager {
 							msg = "Updating submodule "+walk.getModuleName()+" to track head of branch "+trackedBranchName;
 							committer = defaultCommitter;
 						}
-						logger.debug("\t\tgit commit -m \""+msg+"\"");
-						parentgit.commit()
-							.setMessage(msg)
-							.setAllowEmpty(false)
-							.setCommitter(committer)
-							.call();
+						branchModifier = "🔄";
+						if(! dryRun) {
+							logger.debug("\t\tgit commit -m \""+msg+"\"");
+							parentgit.commit()
+								.setMessage(msg)
+								.setAllowEmpty(false)
+								.setCommitter(committer)
+								.call();
+						} else {
+							logger.info("\t\t[DRYRUN] git commit -m \""+msg+"\"");
+						}
 					}
+					reportBuffer.append(String.format("| %-32s |  %-16s %s |\n", walk.getModuleName(), trackedBranchName, branchModifier));
 				}
 			}
 			
@@ -508,22 +531,27 @@ public class GitModuleManager {
 				logger.info(
 						"\tupdating submodules: " + s);
 			}*/
-			Iterable<PushResult> pushResps = parentgit.push()
-				.setCredentialsProvider(credentialProvider)
-				.call();
-			for (PushResult pushRes : pushResps) {
-				for (RemoteRefUpdate pushResult : pushRes.getRemoteUpdates()) {
-					if(pushResult.getStatus() == RemoteRefUpdate.Status.OK) {
-						logger.info("push branch "+consideredBranch+" => "+RemoteRefUpdate.Status.OK);
-					} else if(pushResult.getStatus() == RemoteRefUpdate.Status.UP_TO_DATE) {
-						logger.info("nothing to push for branch "+consideredBranch+" => "+RemoteRefUpdate.Status.UP_TO_DATE);
-						
-					} else {
-						logger.error("PB pushing branch "+consideredBranch+" => "+pushRes.getMessages()+"\" "+pushResult);
+			if(!dryRun) {
+				Iterable<PushResult> pushResps = parentgit.push()
+					.setCredentialsProvider(credentialProvider)
+					.call();
+				for (PushResult pushRes : pushResps) {
+					for (RemoteRefUpdate pushResult : pushRes.getRemoteUpdates()) {
+						if(pushResult.getStatus() == RemoteRefUpdate.Status.OK) {
+							logger.info("push branch "+consideredBranch+" => "+RemoteRefUpdate.Status.OK);
+						} else if(pushResult.getStatus() == RemoteRefUpdate.Status.UP_TO_DATE) {
+							logger.info("nothing to push for branch "+consideredBranch+" => "+RemoteRefUpdate.Status.UP_TO_DATE);
+							
+						} else {
+							logger.error("PB pushing branch "+consideredBranch+" => "+pushRes.getMessages()+"\" "+pushResult);
+						}
 					}
+					validateRemoteRefUpdates("push submodule tracking branch", pushRes.getRemoteUpdates());
 				}
-				validateRemoteRefUpdates("push submodule tracking branch", pushRes.getRemoteUpdates());
+			} else {
+				logger.info("\t\t[DRYRUN] not pushing branch "+consideredBranch);
 			}
+			reportBuffer.append("\n");
 		}
 	}
 	
