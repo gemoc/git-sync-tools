@@ -1,7 +1,11 @@
 package org.gemoc.sync_git_submodules_branches;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Set;
+
+import org.apache.commons.io.FileUtils;
 
 /*
  * Copyright 2001-2005 The Apache Software Foundation.
@@ -38,10 +42,16 @@ public class SyncGitSubmodulesBranchesMojo
     extends AbstractMojo
 {
     /**
-     * Location of the file.
+     * Location of the git repository.
      */
     @Parameter( defaultValue = "${project.build.directory}/syncgitsubmodules_repo", property = "outputDir", required = true )
     private File outputDirectory;
+    
+    /**
+     * Location of the report file.
+     */
+    @Parameter( defaultValue = "${project.build.directory}/syncReport.md", property = "reportFile", required = true )
+    private File reportFile;
     
     @Parameter(property="parentGitURL", required = true)
     private String parentGitURL;
@@ -58,6 +68,9 @@ public class SyncGitSubmodulesBranchesMojo
     
     @Parameter(defaultValue = "", property="committerName")
     private String committerName;
+    
+    @Parameter(defaultValue = "false", property="dryRun")
+    private boolean dryRun;
     
     /**
      * number of days since the last commit of a specific branch 
@@ -91,12 +104,28 @@ public class SyncGitSubmodulesBranchesMojo
 	    	Set<String> relevantBranches = gitManager.collectAllSubmodulesActiveRemoteBranches(inactivityThreshold);
 	    	gitManager.deleteBranchesNotIn(relevantBranches);
 	    	gitManager.createMissingParentBranches(relevantBranches);
-	    	gitManager.updateAllBranchesModules();
+	    	StringBuffer sb = new StringBuffer();
+	    	gitManager.updateAllBranchesModules(sb, dryRun);
+	    	writeReport(sb);
+	    	
 		} catch (Exception e) {
 			getLog().error( e);
 			throw new MojoExecutionException(e.getMessage(), e);
 		}
     	
  
+    }
+    
+    protected void writeReport(StringBuffer content) throws MojoExecutionException {
+    	// Ensure the parent directory exists
+        File parentDir = reportFile.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+           parentDir.mkdirs();
+        }
+        try {
+        	FileUtils.write(reportFile, content.toString(), Charset.defaultCharset());
+        } catch (IOException e) {
+            throw new MojoExecutionException("Error writing to file", e);
+        }
     }
 }

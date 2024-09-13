@@ -1,6 +1,8 @@
 package org.gemoc.sync_git_submodules_branches;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.Set;
 
@@ -25,6 +27,8 @@ public class SyncGitSubModulesBranchesCLI {
 			.addOption("g", "gitURL", true, "git URL that will be cloned")
 			.addOption("c", "committerName", true, "name of the committer who'll sign the commit")
 			.addOption("e", "committerEmail", true, "email of the committer who'll sign the commit")
+			.addOption("d", "dryRun", false, "dryRun, do not commit and push the update")
+			.addOption("r", "reportFile", true, "file name tha will containt the markdown report")
 			.addOption("i", "inactivityThreshold", true, "number of days since the last commit of a specific branch before considering the branch as old/unmaintained/inactive (-1 for infinite duration)");
 		
 		
@@ -41,6 +45,8 @@ public class SyncGitSubModulesBranchesCLI {
 		String committerName = cmd.hasOption("c") ? cmd.getOptionValue("c") : "";
 		String committerEmail = cmd.hasOption("e") ? cmd.getOptionValue("e") : "";
 		String inactivityThreshold = cmd.hasOption("i") ? cmd.getOptionValue("i") : "90";
+		String reportFilePath = cmd.hasOption("r") ? cmd.getOptionValue("r") : "syncReport.md";
+		boolean dryRun = cmd.hasOption("d");
 		
 		if(parentGitURL.isEmpty()) {
 			HelpFormatter formatter = new HelpFormatter();
@@ -66,13 +72,24 @@ public class SyncGitSubModulesBranchesCLI {
     	Set<String> relevantBranches = gitManager.collectAllSubmodulesActiveRemoteBranches(Integer.parseInt(inactivityThreshold));
     	gitManager.deleteBranchesNotIn(relevantBranches);
     	gitManager.createMissingParentBranches(relevantBranches);
-    	gitManager.updateAllBranchesModules();
-    	
+    	StringBuffer sb = new StringBuffer();
+    	gitManager.updateAllBranchesModules(sb, dryRun);
+    	FileUtils.write(outputDirectory, sb.toString(), Charset.defaultCharset());
+    	writeReport(new File(reportFilePath), sb);
     	if(directoryPath.isEmpty()) {
     		// must delete the temp dir
     		System.out.println("Deleting temp directory "+outputDirectory);
     		FileUtils.deleteDirectory(outputDirectory);
     	}
 	}
+	
+    protected static void writeReport(File reportFile, StringBuffer content) throws IOException {
+    	// Ensure the parent directory exists
+        File parentDir = reportFile.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+           parentDir.mkdirs();
+        }
+        FileUtils.write(reportFile, content.toString(), Charset.defaultCharset());
+    }
 
 }
